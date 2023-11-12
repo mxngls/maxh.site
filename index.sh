@@ -7,8 +7,16 @@ SRC_DIR='src'
 echo "title: $SITE_TITLE" > $INDEX_YML
 echo 'pages:' >> $INDEX_YML
 
-find $SRC_DIR \
-  -name '*.md' \
-  -exec  bash -c 'grep -h -w -m 1 title: {} | xargs -0 printf "\ \ -\ %s"' ";" \
-  -exec  bash -c 'echo {} | sed -e '\''s/src\///g'\'' -e "s/\.md/\.html/g" | xargs -0 printf "    %s %s" "path:"' ";" \
-  -exec  bash -c 'grep -h -w -m 1 date: {}  | xargs -0 printf "\ \ \ \ %s\n"' ";" >> $INDEX_YML
+SRC_DOCS=$(find $SRC_DIR -name '*.md')
+
+echo "$SRC_DOCS"
+
+for f in $SRC_DOCS; do
+  {
+    printf "  - %s\n" "$(grep -h -w -m 1 'title:' "$f")"
+    printf "    %s\n" "$(grep -h -w -m 1 'date:' "$f")"
+    printf "    %s %s\n" "path:" "$(echo "$f" | sed -e 's/src\///g' -e 's/\.md/\.html/g')"
+    echo
+  } >> $INDEX_YML
+
+done
