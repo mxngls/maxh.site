@@ -38,11 +38,17 @@ all: $(BUILD) $(EXPORTED_CSS) $(EXPORTED_DOCS) $(BUILD)/index.html
 # In case the Makefile itself changes
 all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
 
+# Create directory to hold CSS and HTML files
 html:
 	mkdir -p $(BUILD)/css
 
 $(EXPORTED_DOCS): $(SOURCE_DOCS) header.html | $(BUILD)
 	@printf "$< >>> $@\n"
+# Copy CSS files into the build directory
+$(BUILD)/css/%.css: style/%.css
+	cp $< $@
+
+# Convert Markdown to HTML
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		$(PANDOC_PAGE_TPL) \
@@ -52,10 +58,12 @@ $(EXPORTED_DOCS): $(SOURCE_DOCS) header.html | $(BUILD)
 		$< -o $@ > /dev/null 2>&1
 
 index.yaml: 
+# Source metadata from all files
 	@./index.sh
 
 $(BUILD)/index.html: $(SRC_DOCS) templates/index.tpl index.sh index.yaml | index.yaml
 	echo 'Creating index.html'
+# Create index.html
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		--metadata-file index.yaml \
@@ -64,11 +72,10 @@ $(BUILD)/index.html: $(SRC_DOCS) templates/index.tpl index.sh index.yaml | index
 		$(PANDOC_METADATA) \
 		-o html/index.html /dev/null
 
+# Make sure we rebuild the index when source files change
 $(BUILD)/index.html: $(patsubst $(SRC)/%.md,$(BUILD)/%.html,$(wildcard $(SRC)/*.md))
 
-$(BUILD)/css/%.css: style/%.css
-	cp $< $@
-
+# Clean the build directory
 .PHONY: clean
 clean:
 	rm -rf html
