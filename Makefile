@@ -42,13 +42,13 @@ all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
 html:
 	mkdir -p $(BUILD)/css
 
-$(EXPORTED_DOCS): $(SOURCE_DOCS) header.html | $(BUILD)
-	@printf "$< >>> $@\n"
 # Copy CSS files into the build directory
 $(BUILD)/css/%.css: style/%.css
 	cp $< $@
 
 # Convert Markdown to HTML
+$(BUILD)/%.html: $(SOURCE)/%.md header.html | $(BUILD)
+	@printf "Converting $< to $@\n"
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		$(PANDOC_PAGE_TPL) \
