@@ -57,13 +57,15 @@ $(BUILD)/css/%.css: style/%.css
 		--variable="modified-date:$$(date '+%Y-%m-%d')" \
 		$< -o $@ > /dev/null 2>&1
 
-index.yaml: 
 # Source metadata from all files
+.INTERMEDIATE: index.yaml
+index.yaml: index.sh $(TPL)/index.tpl $(SOURCE_DOCS)
+	@echo 'Parsing metadata...'
 	@./index.sh
 
-$(BUILD)/index.html: $(SRC_DOCS) templates/index.tpl index.sh index.yaml | index.yaml
-	echo 'Creating index.html'
 # Create index.html
+$(BUILD)/index.html: index.yaml
+	@echo 'Building index.html...'
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		--metadata-file index.yaml \
