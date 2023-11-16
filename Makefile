@@ -13,7 +13,7 @@ EXPORTED_DOCS			:= $(addprefix $(BUILD)/,$(notdir $(SOURCE_DOCS:.md=.html)))
 EXPORTED_CSS			:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
 
 # Pandoc related stuff
-PANDOC_VERSION		:= 3.1.8
+PANDOC_VERSION		:= 3.1.9
 PANDOC						:= pandoc 
 PANDOC_SHARED_OPT	:= -f gfm \
 										 -t markdown-smart \
