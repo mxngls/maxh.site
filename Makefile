@@ -7,7 +7,7 @@ TPL								:= templates
 
 # Source and target files
 SOURCE_DOCS				:= $(wildcard $(SOURCE)/*.md)
-SOURCE_CSS				:= $(wildcard style/*.css)
+SOURCE_CSS				:= $(wildcard *.css)
 
 EXPORTED_DOCS			:= $(addprefix $(BUILD)/,$(notdir $(SOURCE_DOCS:.md=.html)))
 EXPORTED_CSS			:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
@@ -24,7 +24,7 @@ PANDOC_SHARED_OPT	:= -f gfm \
 PANDOC_HTML_OPT		:= --include-before-body header.html \
 										 -M \
 										 --document-css=false \
-										 --css ../style/style.css
+										 --css css/style.css
 PANDOC_PAGE_TPL		:= --template $(TPL)/page.tpl 
 PANDOC_INDEX_TPL	:= --template $(TPL)/index.tpl 
 PANDOC_METADATA		:= --metadata title-author="Max"
@@ -43,7 +43,7 @@ html:
 	mkdir -p $(BUILD)/css
 
 # Copy CSS files into the build directory
-$(BUILD)/css/%.css: style/%.css
+$(BUILD)/css/%.css: %.css
 	cp $< $@
 
 # Convert Markdown to HTML
