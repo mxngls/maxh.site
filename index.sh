@@ -7,9 +7,7 @@ SRC_DIR='src'
 echo "title: $SITE_TITLE" > $INDEX_YML
 echo 'pages:' >> $INDEX_YML
 
-SRC_DOCS=$(find $SRC_DIR -name '*.md')
-
-echo "$SRC_DOCS"
+SRC_DOCS=$(find $SRC_DIR -maxdepth 1 -name '*.md')
 
 for f in $SRC_DOCS; do
   {
