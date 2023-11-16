@@ -55,7 +55,7 @@ $(BUILD)/%.html: $(SOURCE)/%.md header.html | $(BUILD)
 		$(PANDOC_HTML_OPT) \
 		$(PANDOC_METADATA) \
 		--variable="modified-date:$$(date '+%Y-%m-%d')" \
-		$< -o $@ > /dev/null 2>&1
+		$< -o $@
 
 # Source metadata from all files
 .INTERMEDIATE: index.yaml
