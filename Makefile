@@ -40,15 +40,17 @@ all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
 
 # Create directory to hold CSS and HTML files
 html:
+	@echo 'Creating directory for css files...'
 	mkdir -p $(BUILD)/css
 
 # Copy CSS files into the build directory
 $(BUILD)/css/%.css: %.css
+	@echo 'Copying css files...'
 	cp $< $@
 
 # Convert Markdown to HTML
 $(BUILD)/%.html: $(SOURCE)/%.md header.html | $(BUILD)
-	@printf "Converting $< to $@\n"
+	@printf "Converting $(notdir $<) >>> $(notdir $@)\n"
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		$(PANDOC_PAGE_TPL) \
