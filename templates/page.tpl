@@ -9,7 +9,7 @@
   $if(description-meta)$
     <meta name="description" content="$description-meta$" />
   $endif$
-    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <title>$pagetitle$</title>
     <style>
       $styles.html()$
     </style>
@@ -25,14 +25,14 @@
     $if(title)$
     <header id="title-block-header">
       <h1 class="title">$title$</h1>
+      $if(date)$
+      <p class="date">created at $date$</p>
+      $endif$
     </header>
     $endif$
     $body$
     $for(include-after)$
-    $include-after$
+      $include-after$
     $endfor$
-    $if(date)$
-    <p class="date">created at $date$</p>
-    $endif$
   </body>
 </html>

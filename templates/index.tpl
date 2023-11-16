@@ -12,7 +12,7 @@
     $if(description-meta)$
     <meta name="description" content="$description-meta$" />
     $endif$
-    <title>$if(title-prefix)$$title-prefix$ – $endif$$pagetitle$</title>
+    <title>$title$</title>
     <style>
       $styles.html()$
     </style>
