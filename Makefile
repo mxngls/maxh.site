@@ -6,11 +6,21 @@ BUILD							:= html
 TPL								:= templates
 
 # Source and target files
-SOURCE_DOCS				:= $(wildcard $(SOURCE)/*.md)
+SOURCE_DIRS				:= $(shell find $(SOURCE) \
+										 -type d \
+										 -mindepth 1 \
+										 -not -path '$(SOURCE)/drafts'\
+										 )
+SOURCE_DOCS				:= $(shell find $(SOURCE) \
+										 -type f \
+										 -name '*.md' \
+										 -not -path '$(SOURCE)/drafts/*'\
+										 )
 SOURCE_CSS				:= $(wildcard *.css)
 
-EXPORTED_DOCS			:= $(addprefix $(BUILD)/,$(notdir $(SOURCE_DOCS:.md=.html)))
-EXPORTED_CSS			:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
+TARGET_DIRS				:= $(subst $(SOURCE),$(BUILD),$(SOURCE_DIRS))
+TARGET_DOCS				:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_DOCS:.md=.html))
+TARGET_CSS				:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
 
 # Pandoc related stuff
 PANDOC_VERSION		:= 3.1.9
@@ -29,11 +39,8 @@ PANDOC_PAGE_TPL		:= --template $(TPL)/page.tpl
 PANDOC_INDEX_TPL	:= --template $(TPL)/index.tpl 
 PANDOC_METADATA		:= --metadata title-author="Max"
 
-# Convert to upper case
-uppercase = $(shell echo '$*' | perl -nE 'say ucfirst')
-
 .PHONY: all
-all: $(BUILD) $(EXPORTED_CSS) $(EXPORTED_DOCS) $(BUILD)/index.html
+all: clean $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/index.html
 
 # In case the Makefile itself changes
 all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -47,6 +54,10 @@ html:
 $(BUILD)/css/%.css: %.css
 	@echo 'Copying css files...'
 	cp $< $@
+
+$(TARGET_DIRS): $(SOURCE_DIRS)
+	@echo 'Creating directies for source files...'
+	mkdir -p $@
 
 # Convert Markdown to HTML
 $(BUILD)/%.html: $(SOURCE)/%.md header.html | $(BUILD)
