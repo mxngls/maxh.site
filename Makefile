@@ -40,7 +40,7 @@ PANDOC_INDEX_TPL	:= --template $(TPL)/index.tpl
 PANDOC_METADATA		:= --metadata title-author="Max"
 
 .PHONY: all
-all: clean $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/index.html
+all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/index.html
 
 # In case the Makefile itself changes
 all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -89,6 +89,10 @@ $(BUILD)/index.html: index.yaml
 
 # Make sure we rebuild the index when source files change
 $(BUILD)/index.html: $(patsubst $(SRC)/%.md,$(BUILD)/%.html,$(wildcard $(SRC)/*.md))
+
+# Deploy
+.PHONY: deploy
+deploy: clean all
 
 # Clean the build directory
 .PHONY: clean
