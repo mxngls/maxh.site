@@ -74,6 +74,11 @@ ul {
 }
 
 .date-index {
+.index_subtitle {
+  color: #999;
+  font-family: Times, "Times New Roman", serif;
+  margin-top: 0;
+}
   float: right;
   color: #999;
 }

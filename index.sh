@@ -1,11 +1,13 @@
 #!/bin/bash
 
 SITE_TITLE='Blog'
+SITE_SUBTITLE='More than 140 characters; Less than a book'
 INDEX_YML='index.yaml'
 SRC_DIR='src'
 
 echo "title: $SITE_TITLE" > $INDEX_YML
-echo 'pages:' >> $INDEX_YML
+echo "subtitle: $SITE_SUBTITLE" >> $INDEX_YML
+echo "pages:" >> $INDEX_YML
 
 SRC_DOCS=$(find $SRC_DIR -maxdepth 1 -name '*.md')
 
