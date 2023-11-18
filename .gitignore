@@ -6,3 +6,6 @@ drafts/
 
 # Build directory
 html/
+
+# Misc
+templates/default.tpl
