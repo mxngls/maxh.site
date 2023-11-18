@@ -24,6 +24,9 @@
     $if(title)$
     <header id="title-block-header">
     <h1 class="title">$title$</h1>
+    $if(subtitle)$
+    <p class="index_subtitle">$subtitle$</p>
+    $endif$
     </header>
     $endif$
     <ul>
