@@ -11,18 +11,17 @@ body {
     "Open Sans",
     "Helvetica Neue",
     sans-serif;
+  font-size: 110%;
   line-height: 1.42;
+  max-width: 600px;
   position: relative;
-  width: 600px;
-  margin: 7em auto;
-  padding: 0 1em 0 7em;
+  margin: 3em auto;
+  padding: 0 6em 0 6em;
 }
 
-/* test */
-
 nav {
-  top: 0rem;
-  left: 0;
+  top: 0;
+  left: 1.5em;
   position: absolute;
 }
 
@@ -33,13 +32,9 @@ nav ul {
   text-align: left;
 }
 
-nav ul li a {
-  color: black;
-}
-
 ol,
 ul li + li {
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 #title-block-header {
@@ -47,9 +42,10 @@ ul li + li {
 }
 
 h1 {
-  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
+  font-family: Times, "Times New Roman", serif;
   font-size: 2.7rem;
-  margin-bottom: 0rem;
+  line-height: 1.2em;
+  margin-bottom: 0;
 }
 
 h2,
@@ -62,45 +58,31 @@ h6 {
   padding-bottom: 10px;
 }
 
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
 .date {
   color: #999;
   margin-top: 0;
 }
 
-.date-index {
-.index_subtitle {
+.subtitle {
   color: #999;
-  font-family: Times, "Times New Roman", serif;
   margin-top: 0;
-}
-  float: right;
-  color: #999;
-}
-
-.index-el {
-  color: black;
 }
 
 code {
   background-color: #dfdfdf;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   body {
     width: auto;
-    margin: 7em;
+    margin: 3em;
     padding: 0;
   }
 
   nav {
-    top: -3.5em;
     width: 100%;
+    top: -2em;
+    left: 0;
   }
 
   nav ul {
@@ -114,12 +96,14 @@ code {
   }
 
   h1 {
+    font-size: auto;
     top: auto;
+    padding-top: 0.3em;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 430px) {
   body {
-    margin: 5em 1em;
+    margin: 3em 1em;
   }
 }

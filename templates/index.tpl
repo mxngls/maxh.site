@@ -25,14 +25,15 @@
     <header id="title-block-header">
     <h1 class="title">$title$</h1>
     $if(subtitle)$
-    <p class="index_subtitle">$subtitle$</p>
+    <p class="subtitle">$subtitle$</p>
     $endif$
     </header>
     $endif$
-    <ul>
+    <ul style="list-style: none; margin: 0; padding: 0;">
       $for(pages)$
-      <li>
-        <a class="index-el" href="$it.path$"><span class="title">$it.title$</span></a> <span class="date-index">$it.date$</span> 
+      <li style="display: flex; justify-content: space-between;">
+        <a style="overflow-wrap: break-word;" href="$it.path$">$it.title$</a>
+        <span class="date" style="text-wrap: nowrap; margin-left: 2em; float: right;">$it.date$</span> 
       </li>
       $endfor$
     </ul>
