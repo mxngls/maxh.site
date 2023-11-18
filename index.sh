@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SITE_TITLE='Posts'
+SITE_TITLE='Blog'
 INDEX_YML='index.yaml'
 SRC_DIR='src'
 
