@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SITE_TITLE='Blog'
-SITE_SUBTITLE='More than 140 characters; Less than a paper'
+SITE_SUBTITLE='Everything more than 240 characters'
 INDEX_YML='index.yaml'
 SRC_DIR='src'
 
