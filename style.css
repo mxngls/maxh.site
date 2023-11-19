@@ -1,6 +1,5 @@
 body {
-  font-family: Times, "Times New Roman", serif;
-  font-size: 110%;
+  font-family: Arial, Helvetica, sans-serif;
   line-height: 1.42;
   max-width: 600px;
   position: relative;
@@ -31,20 +30,9 @@ ul li + li {
 }
 
 h1 {
-  font-family: Times, "Times New Roman", serif;
   font-size: 2.7rem;
   line-height: 1.2em;
-  margin-bottom: 0;
-}
-
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 500;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
+  margin-bottom: 2px;
 }
 
 .date {
