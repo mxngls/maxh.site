@@ -2,7 +2,7 @@ SHELL = /bin/sh
 
 # Directories are intentionally not managed by variables for better 
 SOURCE						:= src
-BUILD							:= html
+BUILD							:= docs
 TPL								:= templates
 
 # Source and target files
@@ -46,7 +46,7 @@ all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/index.html
 all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
 
 # Create directory to hold CSS and HTML files
-html:
+$(BUILD):
 	@echo 'Creating directory for css files...'
 	mkdir -p $(BUILD)/css
 
@@ -85,7 +85,7 @@ $(BUILD)/index.html: index.yaml
 		$(PANDOC_INDEX_TPL) \
 		$(PANDOC_HTML_OPT) \
 		$(PANDOC_METADATA) \
-		-o html/index.html /dev/null
+		-o $(BUILD)/index.html /dev/null
 
 # Make sure we rebuild the index when source files change
 $(BUILD)/index.html: $(patsubst $(SRC)/%.md,$(BUILD)/%.html,$(wildcard $(SRC)/*.md))
@@ -97,4 +97,4 @@ deploy: clean all
 # Clean the build directory
 .PHONY: clean
 clean:
-	rm -rf html
+	rm -rf $(BUILD)

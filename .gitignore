@@ -5,7 +5,7 @@ drafts/
 .DS_Store
 
 # Build directory
-html/
+docs/
 
 # Misc
 templates/default.tpl
