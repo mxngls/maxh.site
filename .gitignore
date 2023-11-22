@@ -5,4 +5,4 @@ drafts/
 .DS_Store
 
 # Misc
-templates/default.tpl
+templates/default.html
