@@ -1,6 +1,9 @@
 # Drafts
 drafts/
 
+# Build
+docs/
+
 # General
 .DS_Store
 
