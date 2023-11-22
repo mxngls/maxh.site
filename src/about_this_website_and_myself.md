@@ -38,7 +38,7 @@ ways, resembles what Julia Evans highlighted as the [primary
 motivations](https://jvns.ca/blog/brag-documents/) behind her year-long
 blogging activity.
 
-Firstly, I am convinced that putting your thoughts in writing forces you
+First, I am convinced that putting your thoughts in writing forces you
 to clarify and organize them in a way that perhaps only conversations
 with other people do. In the process, I often find myself realizing that
 something I previously believed I had a solid understanding of was, in
@@ -48,7 +48,7 @@ interesting technicalities in particular will help me become a better
 software engineer, and that writing about everything else will help me
 gain a better understanding of myself and the world around me.
 
-Secondly, I write to get to know interesting people. I have already made
+Second, I write to get to know interesting people. I have already made
 acquaintances living on the other side of the world just by reaching out
 to them via Twitter. I sincerely hope the same holds true for publishing
 my writing on here.
