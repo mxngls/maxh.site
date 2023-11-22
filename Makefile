@@ -21,6 +21,8 @@ SOURCE_CSS				:= $(wildcard *.css)
 TARGET_DIRS				:= $(subst $(SOURCE),$(BUILD),$(SOURCE_DIRS))
 TARGET_DOCS				:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_DOCS:.md=.html))
 TARGET_CSS				:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
+PAGE_TPL					:= page.html
+INDEX_TPL					:= index.html
 
 # Pandoc related stuff
 PANDOC_VERSION		:= 3.1.9
@@ -35,8 +37,8 @@ PANDOC_HTML_OPT		:= --include-before-body header.html \
 										 -M \
 										 --document-css=false \
 										 --css css/style.css
-PANDOC_PAGE_TPL		:= --template $(TPL)/page.tpl 
-PANDOC_INDEX_TPL	:= --template $(TPL)/index.tpl 
+PANDOC_PAGE_TPL		:= --template $(TPL)/$(PAGE_TPL)
+PANDOC_INDEX_TPL	:= --template $(TPL)/$(INDEX_TPL)
 PANDOC_METADATA		:= --metadata title-author="Max"
 
 .PHONY: all
@@ -72,7 +74,7 @@ $(BUILD)/%.html: $(SOURCE)/%.md header.html | $(BUILD)
 
 # Source metadata from all files
 .INTERMEDIATE: index.yaml
-index.yaml: index.sh $(TPL)/index.tpl $(SOURCE_DOCS)
+index.yaml: index.sh $(TPL)/$(INDEX_TPL) $(SOURCE_DOCS)
 	@echo 'Parsing metadata...'
 	@./index.sh
 
