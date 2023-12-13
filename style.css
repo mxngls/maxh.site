@@ -28,6 +28,11 @@ nav ul {
   text-align: left;
 }
 
+nav ul li a {
+  color: #999;
+  text-decoration: none;
+}
+
 ol,
 ul li + li {
   margin-top: 8px;
