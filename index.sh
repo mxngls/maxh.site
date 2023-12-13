@@ -14,12 +14,43 @@ SRC_DOCS=$(find $SRC_DIR \
   -maxdepth 1 \
   -name '*.md')
 
+# Create pairs of file name and creation date
 for f in $SRC_DOCS; do
-  {
-    printf "  - %s\n" "$(grep -h -w -m 1 'title:' "$f")"
-    printf "    %s\n" "$(grep -h -w -m 1 'date:' "$f")"
-    printf "    %s %s\n" "path:" "$(echo "$f" | sed -e 's/src\///g' -e 's/\.md/\.html/g')"
-    echo
-  } >> $INDEX_YML
-
+  if [ -f "$f" ] && [ "$(basename "$f")" != "index.md" ]; then
+    date=$(grep -h -w -m 1 'date:' "$f" | sed -e 's/\"//g' -e 's/date: //g')
+    pairs+=("${f}"'|'"${date}"'')
+  fi
 done
+
+# Sort the pairs after their creation date and parse the relating meta data
+while IFS='' read -r pair; do
+  # Trunc to filename
+  file="$(echo "$pair" | awk -F '|' '{print $1}')"
+
+  title="$(grep -h -w -m 1 'title:' "$f")"
+  date="$(grep -h -w -m 1 'date:' "$f")"
+  description="$(grep -h -w -m 1 'description:' "$f")"
+
+  # Check for missing meta data
+  if [ -z "$title" ]; then
+    printf "Error: Missing title in %s\n" "$file"
+    exit 1
+  elif [ -z "$date" ]; then
+    printf "Error: Missing date in %s\n" "$file"
+    exit 1
+  elif [ -z "$description" ]; then
+    printf "Error: Missing description in %s\n" "$file"
+    exit 1
+  fi
+
+  {
+    printf "  - %s\n" "$title";
+    printf "    %s\n" "$date";
+    printf "    %s\n" "$description";
+    printf "    %s\n" "path: $(basename "${file%.*}.html")";
+    echo
+  } >> "$INDEX_YML"
+
+done < <(printf "%s\n" "${pairs[@]}" | sort -t '|' -k 2)
+
+exit 0

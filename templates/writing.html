@@ -1,5 +1,12 @@
 <!doctype html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="$lang$" xml:lang="$lang$" $if(dir)$ dir="$dir$" $endif$>
+<html
+  xmlns="http://www.w3.org/1999/xhtml"
+  lang="$lang$"
+  xml:lang="$lang$"
+  $if(dir)$
+  dir="$dir$"
+  $endif$
+>
   <head>
     <meta charset="utf-8" />
     <meta
@@ -20,23 +27,41 @@
     $header-includes$
   </head>
   <body>
-    $include-before$
-    $if(title)$
+    $include-before$ $if(title)$
     <header id="title-block-header">
-    <h1 class="title">$title$</h1>
-    $if(subtitle)$
-    <p class="subtitle">$subtitle$</p>
-    $endif$
+      <h1 class="title">$title$</h1>
+      $if(subtitle)$
+      <p class="subtitle">$subtitle$</p>
+      $endif$
     </header>
     $endif$
-    <ul style="list-style: none; margin: 0; padding: 0;">
-      $for(pages)$
-      <li style="display: flex; justify-content: space-between;">
-        <a style="overflow-wrap: break-word;" href="$it.path$">$it.title$</a>
-        <span class="date" style="text-wrap: nowrap; margin-left: 2em; float: right;">$it.date$</span> 
-      </li>
-      $endfor$
-    </ul>
+    <main>
+      <ul style="list-style: none; margin: 0; padding: 0">
+        $for(pages)$
+        <li style="margin-bottom: 2em">
+          <div
+            style="
+              margin: 0.5em 0 0.5em 0;
+              display: flex;
+              justify-content: space-between;
+            "
+          >
+            <a
+              style="overflow-wrap: break-word; text-decoration: none"
+              href="$it.path$"
+              >$it.title$</a
+            >
+            <span
+              class="date"
+              style="text-wrap: nowrap; margin-left: 2em; float: right"
+              >$it.date$</span
+            >
+          </div>
+          <span>$it.description$</span>
+        </li>
+        $endfor$
+      </ul>
+    </main>
     $include-after$
   </body>
 </html>
