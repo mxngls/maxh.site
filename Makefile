@@ -22,7 +22,7 @@ TARGET_DIRS				:= $(subst $(SOURCE),$(BUILD),$(SOURCE_DIRS))
 TARGET_DOCS				:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_DOCS:.md=.html))
 TARGET_CSS				:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
 PAGE_TPL					:= page.html
-INDEX_TPL					:= index.html
+INDEX_TPL					:= writing.html
 
 # Pandoc related stuff
 PANDOC_VERSION		:= 3.1.9
@@ -42,7 +42,7 @@ PANDOC_INDEX_TPL	:= --template $(TPL)/$(INDEX_TPL)
 PANDOC_METADATA		:= --metadata title-author="Max"
 
 .PHONY: all
-all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/index.html
+all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/writing.html
 
 # In case the Makefile itself changes
 all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -78,19 +78,19 @@ index.yaml: index.sh $(TPL)/$(INDEX_TPL) $(SOURCE_DOCS)
 	@echo 'Parsing metadata...'
 	@./index.sh
 
-# Create index.html
-$(BUILD)/index.html: index.yaml
-	@echo 'Building index.html...'
+# Create writing.html
+$(BUILD)/writing.html: index.yaml
+	@echo 'Building writing.html...'
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		--metadata-file index.yaml \
 		$(PANDOC_INDEX_TPL) \
 		$(PANDOC_HTML_OPT) \
 		$(PANDOC_METADATA) \
-		-o $(BUILD)/index.html /dev/null
+		-o $(BUILD)/writing.html /dev/null
 
 # Make sure we rebuild the index when source files change
-$(BUILD)/index.html: $(patsubst $(SRC)/%.md,$(BUILD)/%.html,$(wildcard $(SRC)/*.md))
+$(BUILD)/writing.html: $(patsubst $(SRC)/%.md,$(BUILD)/%.html,$(wildcard $(SRC)/*.md))
 
 # Deploy
 .PHONY: deploy
