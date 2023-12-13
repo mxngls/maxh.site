@@ -30,9 +30,29 @@ ul li + li {
 }
 
 h1 {
-  font-size: 2.7rem;
+  font-family:
+    ui-serif,
+    Georgia,
+    Cambria,
+    Times New Roman,
+    Times,
+    serif;
+  font-size: 1.5rem;
   line-height: 1.2em;
   margin-bottom: 2px;
+}
+
+h2 {
+  font-size: 1.25rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400;
 }
 
 .date {
