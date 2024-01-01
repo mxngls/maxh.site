@@ -113,9 +113,9 @@ the number of books read would be much higher even if I included these.
 The most remarkable reads were "The Dream Machine" by M. Mitchel Waldrop
 and "Oceanic" by Greg Egan. I mostly read books in short bursts during
 which I get totally immersed in whatever topic the book I am reading
-then deals with. I the time between I did not read too much. I intend to
-spend a less time online and a bit more reading books in the coming
-year. 
+then deals with. In the time between I tend to not read too much. I
+intend to spend a less time online and a bit more reading books in the
+coming year though. 
 
 [^1]:   Of course tinkering with configuration files like this
         doesn't only have drawbacks. I learned quite a lot about Bash 
