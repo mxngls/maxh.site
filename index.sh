@@ -27,9 +27,9 @@ while IFS='' read -r pair; do
   # Trunc to filename
   file="$(echo "$pair" | awk -F '|' '{print $1}')"
 
-  title="$(grep -h -w -m 1 'title:' "$f")"
-  date="$(grep -h -w -m 1 'date:' "$f")"
-  description="$(grep -h -w -m 1 'description:' "$f")"
+  title="$(grep -h -w -m 1 'title:' "$file")"
+  date="$(grep -h -w -m 1 'date:' "$file")"
+  description="$(grep -h -w -m 1 'description:' "$file")"
 
   # Check for missing meta data
   if [ -z "$title" ]; then
