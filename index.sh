@@ -51,6 +51,6 @@ while IFS='' read -r pair; do
     echo
   } >> "$INDEX_YML"
 
-done < <(printf "%s\n" "${pairs[@]}" | sort -t '|' -k 2)
+done < <(printf "%s\n" "${pairs[@]}" | sort -r -t '|' -k 2)
 
 exit 0
