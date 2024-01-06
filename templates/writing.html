@@ -36,26 +36,12 @@
     </header>
     $endif$
     <main>
-      <ul style="list-style: none; margin: 0; padding: 0">
+      <ul id="post-list">
         $for(pages)$
-        <li style="margin-bottom: 2em">
-          <div
-            style="
-              margin: 0.5em 0 0.5em 0;
-              display: flex;
-              justify-content: space-between;
-            "
-          >
-            <a
-              style="overflow-wrap: break-word; text-decoration: none"
-              href="$it.path$"
-              >$it.title$</a
-            >
-            <span
-              class="date"
-              style="text-wrap: nowrap; margin-left: 2em; float: right"
-              >$it.date$</span
-            >
+        <li id="post-entry">
+          <div>
+            <a href="$it.path$">$it.title$</a>
+            <span class="date">$it.date$</span>
           </div>
           <span>$it.description$</span>
         </li>
