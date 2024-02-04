@@ -49,12 +49,18 @@ all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
 
 # Create directory to hold CSS and HTML files
 $(BUILD):
-	@echo 'Creating directory for css files...'
+	@echo 'Creating directory for css files and other assets...'
 	mkdir -p $(BUILD)/css
+	mkdir -p $(BUILD)/assets
 
 # Copy CSS files into the build directory
 $(BUILD)/css/%.css: %.css
 	@echo 'Copying css files...'
+	cp $< $@
+
+# Copy other assets into the build directory
+$(BUILD)/assets/%: %
+	@echo 'Copying other assets...'
 	cp $< $@
 
 $(TARGET_DIRS): $(SOURCE_DIRS)
