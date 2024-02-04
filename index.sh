@@ -29,7 +29,6 @@ while IFS='' read -r pair; do
 
   title="$(grep -h -w -m 1 'title:' "$file")"
   date="$(grep -h -w -m 1 'date:' "$file")"
-  description="$(grep -h -w -m 1 'description:' "$file")"
 
   # Check for missing meta data
   if [ -z "$title" ]; then
@@ -38,15 +37,11 @@ while IFS='' read -r pair; do
   elif [ -z "$date" ]; then
     printf "Error: Missing date in %s\n" "$file"
     exit 1
-  elif [ -z "$description" ]; then
-    printf "Error: Missing description in %s\n" "$file"
-    exit 1
   fi
 
   {
     printf "  - %s\n" "$title";
     printf "    %s\n" "$date";
-    printf "    %s\n" "$description";
     printf "    %s\n" "path: $(basename "${file%.*}.html")";
     echo
   } >> "$INDEX_YML"

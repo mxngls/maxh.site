@@ -1,7 +1,6 @@
 ---
 title: "2023"
 date: "2023-12-31"
-description: "Year in Review"
 ---
 
 2023 is over and I figured this is a great opportunity to look back
