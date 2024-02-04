@@ -1,24 +1,25 @@
+@font-face {
+  font-family: "Input Sans";
+  src: url("/assets/InputSans-Regular.ttf");
+  src: url("/assets/InputSans-Light.ttf");
+}
+
 body {
-  font-family:
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Roboto,
-    "Helvetica Neue",
-    Arial;
-  font-size: 18px;
-  background-color: #fffdf9;
+  font-family: "Input Sans";
+  font-size: 16px;
   line-height: 1.5;
-  max-width: 600px;
+  max-width: 700px;
   margin: 3em auto;
-  padding: 0 6em 0 9em;
+}
+
+#content {
+  position: relative;
+  padding: 3em;
 }
 
 nav {
   width: 100%;
-  margin-bottom: 2em;
+  margin-bottom: 1em;
 }
 
 nav ul {
@@ -47,138 +48,52 @@ nav ul li a {
   text-decoration: none;
 }
 
-nav ul li a:visited {
-  color: blue;
-}
-
 ol,
 ul li + li {
   margin-top: 8px;
 }
 
+h1 {
+  margin-top: 0;
+}
+
 #title-block-header {
-  margin-top: 1.3rem;
+  margin-top: 0;
   margin-bottom: 2rem;
 }
 
-h1 {
-  font-family:
-    ui-serif,
-    Georgia,
-    Cambria,
-    Times New Roman,
-    Times,
-    serif;
-  font-size: 2rem;
-  line-height: 1.2em;
-  margin-top: 0;
-  margin-bottom: 2px;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-weight: 400;
-}
-
-h2 {
-  font-family:
-    ui-serif,
-    Georgia,
-    Cambria,
-    Times New Roman,
-    Times,
-    serif;
-  font-size: 1.4rem;
-  margin-top: 2em;
-}
-
-#post-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 80%;
-}
-
-#post-entry {
-  margin-bottom: 2em;
-}
-
-#post-entry div {
-  margin: 0.5em 0 0.15em 0;
-  border-radius: 5px;
-  display: flex;
-  justify-content: space-between;
-}
-
-#post-entry a {
-  height: 30px;
-  overflow-wrap: break-word;
-  text-decoration: none;
-  border-bottom: none;
-  padding-bottom: 1.5px;
-}
-
-#post-entry div a:visited {
-  color: blue;
-}
-
-nav ul li a:hover,
-#post-entry div a:hover {
-  color: #451a03;
-  border-bottom: 1px solid;
-  padding-bottom: 0.5px;
-}
-
-#post-entry span {
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-}
-
-#post-entry .date {
-  text-wrap: nowrap;
-  margin-left: 2em;
-  float: right;
-}
-
 .date {
-  color: #999;
-  margin-top: 0;
+  display: inline-block;
 }
 
-.subtitle {
-  color: #999;
-  margin-top: 0;
+#title-block-header:after {
+  content: "〰〰〰〰";
+  font-size: 30px;
 }
 
 #footnotes {
+  /* font-weight: 300; */
   line-height: 1.3;
-  font-size: 85%;
+  font-size: 80%;
 }
 
 @media (max-width: 640px) {
   body {
-    width: auto;
-    margin: 3em;
-    padding: 0;
+    font-size: 16px;
+    margin: 0.5em;
   }
 
-  h1 {
-    font-size: auto;
-    top: auto;
-    padding-top: 0.3em;
+  #content {
+    padding: 2em 2em;
   }
 }
 
 @media (max-width: 430px) {
   body {
-    margin: 1.5em 1em;
+    margin: 0.5em;
   }
 
-  #post-entry {
-    width: 100%;
+  #content {
+    padding: 2em 1em;
   }
 }

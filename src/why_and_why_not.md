@@ -1,6 +1,6 @@
 ---
-title: "Why and why not"
-date: "2023-11-19"
+title: "This websites reason d'être"
+date:  "2023/11/19"
 ---
 
 ## Exposing yourself
