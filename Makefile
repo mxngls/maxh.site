@@ -75,7 +75,7 @@ $(BUILD)/%.html: $(SOURCE)/%.md header.html $(TPL)/$(PAGE_TPL) | $(BUILD)
 
 # Source metadata from all files
 .INTERMEDIATE: index.yaml
-index.yaml: index.sh $(TPL)/$(INDEX_TPL) $(SOURCE_DOCS)
+index.yaml: index.sh $(TPL)/$(INDEX_TPL) $(SOURCE_DOCS) header.html
 	@echo 'Parsing metadata...'
 	@./index.sh
 
