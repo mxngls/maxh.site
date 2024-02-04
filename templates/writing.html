@@ -21,32 +21,61 @@
     $endif$
     <title>$title$</title>
     <style>
+      table {
+        border: none;
+        lastPos = markInfo['pos']
+        border-collapse: separate;
+        border-spacing: 0 1em;
+        width: 100%;
+      }
+
+      table td {
+        vertical-align: top;
+        padding: 5px 15px 5px 5px;
+        border-bottom: 1px solid black;
+        padding-bottom: 10px;
+      }
+
+      table td:first-child {
+        width: 1px;
+      }
+
+      table tr td:last-of-type {
+        padding-right: 0px;
+      }
+
+      table tr td:last-of-type a {
+        text-decoration: none;
+      }
+
       $styles.html()$
     </style>
     <link rel="stylesheet" href="$css$" />
     $header-includes$
   </head>
   <body>
-    $include-before$ $if(title)$
-    <header id="title-block-header">
-      <h1 class="title">$title$</h1>
-      $if(subtitle)$
-      <p class="subtitle">$subtitle$</p>
+    <div id="content">
+      $include-before$ $if(title)$
+      <header id="title-block-header">
+        <h1 class="title">$title$</h1>
+        $if(subtitle)$
+        <div style="margin-top: 1em">$subtitle$</div>
+        $endif$
+      </header>
       $endif$
-    </header>
-    $endif$
-    <main>
-      <ul id="post-list">
-        $for(pages)$
-        <li id="post-entry">
-          <div>
-            <a href="$it.path$">$it.title$</a>
-            <span class="date">$it.date$</span>
-          </div>
-        </li>
-        $endfor$
-      </ul>
-    </main>
-    $include-after$
+      <main>
+        <table>
+          <tbody>
+            $for(pages)$
+            <tr>
+              <td><span>$it.date$</span></td>
+              <td><a href="$it.path$">$it.title$</a></td>
+            </tr>
+            $endfor$
+          </tbody>
+        </table>
+      </main>
+      $include-after$
+    </div>
   </body>
 </html>

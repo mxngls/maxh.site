@@ -1,10 +1,11 @@
 ---
 title: "2023"
-date: "2023-12-31"
+subtitle: "Year in Review"
+date:  "2023/12/31"
 ---
 
-2023 is over and I figured this is a great opportunity to look back
-onto what I accomplished during that time.
+2023 is over and I figured this is a great opportunity to look back onto
+what I accomplished during that time.
 
 ## Working in Tech
 
@@ -23,14 +24,14 @@ resolves around writing and distributing software, but not the act
 itself. Working in web development involves using countless technologies
 that you have to know about, may it be Docker, Nginx or AWS. As someone
 writing software professionally for the first time, getting to know
-these simply takes some time. 
+these simply takes some time.
 
 Besides, I now truly feel at home using the command line and all the
 different utilities that come with Unix like operating systems. This may
 come to the surprise to some, but learning Bash and writing some useful
 utilities for myself were particular fun. On top of that I came to
 really like Makefiles. But my love for Unix and it's philosophy is
-something for another time. 
+something for another time.
 
 In addition I did improve significantly using Vim as a text editor.
 Editing text with Vim's key-bindings is less about efficiency, but more
@@ -39,7 +40,7 @@ takes a significant amount of time to really absorb the numerous
 shortcuts used on a day to day basis until you are able to recall them
 from memory and to get to know the editors numerous idiosyncrasies, but
 as I get there it feels like some kind of wall broke down I did not know
-existed before when editing text and writing software in particular. 
+existed before when editing text and writing software in particular.
 
 One common theme for both of these is the use of text based
 configuration files. Before, configuring software and changing it's
@@ -114,7 +115,7 @@ and "Oceanic" by Greg Egan. I mostly read books in short bursts during
 which I get totally immersed in whatever topic the book I am reading
 then deals with. In the time between I tend to not read too much. I
 intend to spend a less time online and a bit more reading books in the
-coming year though. 
+coming year though.
 
 [^1]:   Of course tinkering with configuration files like this
         doesn't only have drawbacks. I learned quite a lot about Bash 

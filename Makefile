@@ -70,7 +70,16 @@ $(BUILD)/%.html: $(SOURCE)/%.md header.html $(TPL)/$(PAGE_TPL) | $(BUILD)
 		$(PANDOC_HTML_OPT) \
 		$(PANDOC_BEFORE_INDEX) \
 		$(PANDOC_METADATA) \
-		--variable="modified-date:$$(date '+%Y-%m-%d')" \
+		--variable="date:$$(grep -h -w -m 1 'date:' $< | \
+			sed -e 's/date:[[:space:]]*//g' | \
+			tr -d \" | \
+			{ read DATE; date -j -f '%Y/%m/%d' +'%a, %-e %B %Y' $$DATE; } )" \
+		--variable="modified-date:$$(git log \
+			-1 \
+			--date='format:%a, %e %B %G' \
+      --format='%cd' \
+			$< | \
+			sed -e 's/-/\//g')" \
 		$< -o $@
 
 # Source metadata from all files

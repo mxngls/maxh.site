@@ -28,7 +28,7 @@ while IFS='' read -r pair; do
   file="$(echo "$pair" | awk -F '|' '{print $1}')"
 
   title="$(grep -h -w -m 1 'title:' "$file")"
-  date="$(grep -h -w -m 1 'date:' "$file")"
+  date="$(grep -h -w -m 1 'date:' "$file" | sed -e 's/\//./g')"
 
   # Check for missing meta data
   if [ -z "$title" ]; then
