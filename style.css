@@ -1,7 +1,6 @@
 @font-face {
   font-family: "Input Sans";
   src: url("/assets/InputSans-Regular.ttf");
-  src: url("/assets/InputSans-Light.ttf");
 }
 
 body {
