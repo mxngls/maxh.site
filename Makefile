@@ -62,7 +62,7 @@ $(TARGET_DIRS): $(SOURCE_DIRS)
 	mkdir -p $@
 
 # Convert Markdown to HTML
-$(BUILD)/%.html: $(SOURCE)/%.md header.html | $(BUILD)
+$(BUILD)/%.html: $(SOURCE)/%.md header.html $(TPL)/$(PAGE_TPL) | $(BUILD)
 	@printf "Converting $(notdir $<) >>> $(notdir $@)\n"
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
