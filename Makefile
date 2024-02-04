@@ -4,6 +4,7 @@ SHELL = /bin/sh
 SOURCE						:= src
 BUILD							:= docs
 TPL								:= templates
+ASSETS						:= assets
 
 # Source and target files
 SOURCE_DIRS				:= $(shell find $(SOURCE) \
@@ -17,10 +18,12 @@ SOURCE_DOCS				:= $(shell find $(SOURCE) \
 										 -not -path '$(SOURCE)/drafts/*'\
 										 )
 SOURCE_CSS				:= $(wildcard *.css)
+SOURCE_ASSETS			:= $(wildcard $(ASSETS)/*)
 
 TARGET_DIRS				:= $(subst $(SOURCE),$(BUILD),$(SOURCE_DIRS))
 TARGET_DOCS				:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_DOCS:.md=.html))
 TARGET_CSS				:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
+TARGET_ASSETS			:= $(addprefix $(BUILD)/, $(SOURCE_ASSETS))
 PAGE_TPL					:= page.html
 INDEX_TPL					:= writing.html
 
@@ -42,25 +45,20 @@ PANDOC_INDEX_TPL	:= --template $(TPL)/$(INDEX_TPL)
 PANDOC_METADATA		:= --metadata title-author="Max"
 
 .PHONY: all
-all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_DOCS) $(BUILD)/writing.html
-
-# In case the Makefile itself changes
-all: .EXTRA_PREREQS := $(abspath $(lastword $(MAKEFILE_LIST)))
+all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_ASSETS) $(TARGET_DOCS) $(BUILD)/writing.html
 
 # Create directory to hold CSS and HTML files
 $(BUILD):
 	@echo 'Creating directory for css files and other assets...'
 	mkdir -p $(BUILD)/css
-	mkdir -p $(BUILD)/assets
+	mkdir -p $(BUILD)/$(ASSETS)
 
 # Copy CSS files into the build directory
-$(BUILD)/css/%.css: %.css
-	@echo 'Copying css files...'
+$(TARGET_CSS): *.css
 	cp $< $@
 
 # Copy other assets into the build directory
-$(BUILD)/assets/%: %
-	@echo 'Copying other assets...'
+$(TARGET_ASSETS): $(SOURCE_ASSETS)
 	cp $< $@
 
 $(TARGET_DIRS): $(SOURCE_DIRS)
@@ -68,7 +66,7 @@ $(TARGET_DIRS): $(SOURCE_DIRS)
 	mkdir -p $@
 
 # Convert Markdown to HTML
-$(BUILD)/%.html: $(SOURCE)/%.md header.html $(TPL)/$(PAGE_TPL) | $(BUILD)
+$(TARGET_DOCS): $(SOURCE_DOCS) header.html $(TPL)/$(PAGE_TPL)
 	@printf "Converting $(notdir $<) >>> $(notdir $@)\n"
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
@@ -95,7 +93,7 @@ index.yaml: index.sh $(TPL)/$(INDEX_TPL) $(SOURCE_DOCS) header.html
 	@./index.sh
 
 # Create writing.html
-$(BUILD)/writing.html: index.yaml
+$(BUILD)/writing.html: index.yaml $(SOURCE_DOCS)
 	@echo 'Building writing.html...'
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
@@ -105,9 +103,6 @@ $(BUILD)/writing.html: index.yaml
 		$(PANDOC_BEFORE_INDEX) \
 		$(PANDOC_METADATA) \
 		-o $(BUILD)/writing.html /dev/null
-
-# Make sure we rebuild the index when source files change
-$(BUILD)/writing.html: $(patsubst $(SRC)/%.md,$(BUILD)/%.html,$(wildcard $(SRC)/*.md))
 
 # Deploy
 .PHONY: deploy
