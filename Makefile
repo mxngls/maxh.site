@@ -5,8 +5,9 @@ SOURCE						:= src
 BUILD							:= docs
 TPL								:= templates
 ASSETS						:= assets
+CSS_DIR						:= css
 
-# Source and target files
+# Prerequisites
 SOURCE_DIRS				:= $(shell find $(SOURCE) \
 										 -type d \
 										 -mindepth 1 \
@@ -17,17 +18,20 @@ SOURCE_DOCS				:= $(shell find $(SOURCE) \
 										 -name '*.md' \
 										 -not -path '$(SOURCE)/drafts/*'\
 										 )
-SOURCE_CSS				:= $(wildcard *.css)
-SOURCE_ASSETS			:= $(wildcard $(ASSETS)/*)
+SOURCE_CSS				:= $(wildcard $(SOURCE)/$(CSS_DIR)/*.css)
+SOURCE_ASSETS			:= $(wildcard $(SOURCE)/$(ASSETS)/*)
 
+# Targets
 TARGET_DIRS				:= $(subst $(SOURCE),$(BUILD),$(SOURCE_DIRS))
 TARGET_DOCS				:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_DOCS:.md=.html))
-TARGET_CSS				:= $(addprefix $(BUILD)/css/,$(notdir $(SOURCE_CSS)))
-TARGET_ASSETS			:= $(addprefix $(BUILD)/, $(SOURCE_ASSETS))
-PAGE_TPL					:= page.html
-INDEX_TPL					:= writing.html
+TARGET_CSS				:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_CSS))
+TARGET_ASSETS			:= $(patsubst $(SOURCE)/%,$(BUILD)/%,$(SOURCE_ASSETS))
 
-# Pandoc related stuff
+# HTML templates
+PAGE_TPL					:= page.html
+INDEX_TPL					:= index.html
+
+# Pandoc
 PANDOC_VERSION		:= 3.1.9
 PANDOC						:= pandoc 
 PANDOC_SHARED_OPT	:= -f gfm \
@@ -36,73 +40,79 @@ PANDOC_SHARED_OPT	:= -f gfm \
 										 --to html5 \
 										 --highlight-style tango \
 										 --from=markdown+yaml_metadata_block
-PANDOC_BEFORE_INDEX := --include-before-body header.html
+PANDOC_BEFORE     := --include-before-body $(SOURCE)/header.html
 PANDOC_HTML_OPT		:= -M \
 										 --document-css=false \
-										 --css css/style.css
+										 --css $(CSS_DIR)/style.css
 PANDOC_PAGE_TPL		:= --template $(TPL)/$(PAGE_TPL)
 PANDOC_INDEX_TPL	:= --template $(TPL)/$(INDEX_TPL)
 PANDOC_METADATA		:= --metadata title-author="Max"
 
 .PHONY: all
-all: $(BUILD) $(TARGET_DIRS) $(TARGET_CSS) $(TARGET_ASSETS) $(TARGET_DOCS) $(BUILD)/writing.html
+all: $(BUILD) \
+     $(BUILD)/index.html \
+     $(TARGET_DIRS) \
+     $(TARGET_CSS) \
+     $(TARGET_ASSETS) \
+     $(TARGET_DOCS)
 
-# Create directory to hold CSS and HTML files
+# Create directories to hold CSS and other assets
 $(BUILD):
-	@echo 'Creating directory for css files and other assets...'
-	mkdir -p $(BUILD)/css
+	mkdir -p $(BUILD)/$(CSS_DIR)
 	mkdir -p $(BUILD)/$(ASSETS)
+	
+# Build all necessary target directories for source docs
+$(TARGET_DIRS):
+	mkdir -p $@
 
 # Copy CSS files into the build directory
-$(TARGET_CSS): *.css
+$(BUILD)/%.css: $(SOURCE)/%.css
 	cp $< $@
 
 # Copy other assets into the build directory
-$(TARGET_ASSETS): $(SOURCE_ASSETS)
+$(BUILD)/%: $(SOURCE)/%
 	cp $< $@
 
-$(TARGET_DIRS): $(SOURCE_DIRS)
-	@echo 'Creating directies for source files...'
-	mkdir -p $@
-
 # Convert Markdown to HTML
-$(TARGET_DOCS): $(SOURCE_DOCS) header.html $(TPL)/$(PAGE_TPL)
+$(BUILD)/%.html: $(SOURCE)/%.md $(TPL)/$(PAGE_TPL) $(SOURCE)/header.html
 	@printf "Converting $(notdir $<) >>> $(notdir $@)\n"
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		$(PANDOC_PAGE_TPL) \
 		$(PANDOC_HTML_OPT) \
-		$(PANDOC_BEFORE_INDEX) \
+		$(PANDOC_BEFORE) \
 		$(PANDOC_METADATA) \
 		--variable="date:$$(grep -h -w -m 1 'date:' $< | \
 			sed -e 's/date:[[:space:]]*//g' | \
 			tr -d \" | \
-			{ read DATE; date -j -f '%Y/%m/%d' +'%a, %-e %B %Y' $$DATE; } )" \
+			{ read DATE; date -j -f '%Y/%m/%d' +'%a, %-e %B %Y' $$DATE; } \
+			2> /dev/null)" \
 		--variable="modified-date:$$(git log \
 			-1 \
 			--date='format:%a, %e %B %G' \
       --format='%cd' \
 			$< | \
-			sed -e 's/-/\//g')" \
-		$< -o $@
+			sed -e 's/-/\//g' 2> /dev/null)" \
+		$< -o $@ \
+		2> /dev/null
 
 # Source metadata from all files
 .INTERMEDIATE: index.yaml
-index.yaml: index.sh $(TPL)/$(INDEX_TPL) $(SOURCE_DOCS) header.html
+index.yaml: index.sh $(SOURCE_DOCS) $(TPL)/$(INDEX_TPL) $(SOURCE)/header.html
 	@echo 'Parsing metadata...'
 	@./index.sh
 
-# Create writing.html
-$(BUILD)/writing.html: index.yaml $(SOURCE_DOCS)
-	@echo 'Building writing.html...'
+# Create index.html
+$(BUILD)/index.html: index.yaml
+	@echo 'Building index.html...'
 	@$(PANDOC) \
 		$(PANDOC_SHARED_OPT) \
 		--metadata-file index.yaml \
 		$(PANDOC_INDEX_TPL) \
     $(PANDOC_HTML_OPT) \
-		$(PANDOC_BEFORE_INDEX) \
+		$(PANDOC_BEFORE) \
 		$(PANDOC_METADATA) \
-		-o $(BUILD)/writing.html /dev/null
+		-o $(BUILD)/index.html /dev/null
 
 # Deploy
 .PHONY: deploy
