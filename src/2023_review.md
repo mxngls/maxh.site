@@ -5,7 +5,7 @@ date:  "2023/12/31"
 ---
 
 2023 is over and I figured this is a great opportunity to look back onto
-what I accomplished during that time.
+what I accomplished during that time!
 
 ## Working in Tech
 
