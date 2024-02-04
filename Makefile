@@ -33,8 +33,8 @@ PANDOC_SHARED_OPT	:= -f gfm \
 										 --to html5 \
 										 --highlight-style tango \
 										 --from=markdown+yaml_metadata_block
-PANDOC_HTML_OPT		:= --include-before-body header.html \
-										 -M \
+PANDOC_BEFORE_INDEX := --include-before-body header.html
+PANDOC_HTML_OPT		:= -M \
 										 --document-css=false \
 										 --css css/style.css
 PANDOC_PAGE_TPL		:= --template $(TPL)/$(PAGE_TPL)
@@ -68,6 +68,7 @@ $(BUILD)/%.html: $(SOURCE)/%.md header.html $(TPL)/$(PAGE_TPL) | $(BUILD)
 		$(PANDOC_SHARED_OPT) \
 		$(PANDOC_PAGE_TPL) \
 		$(PANDOC_HTML_OPT) \
+		$(PANDOC_BEFORE_INDEX) \
 		$(PANDOC_METADATA) \
 		--variable="modified-date:$$(date '+%Y-%m-%d')" \
 		$< -o $@
@@ -85,7 +86,8 @@ $(BUILD)/writing.html: index.yaml
 		$(PANDOC_SHARED_OPT) \
 		--metadata-file index.yaml \
 		$(PANDOC_INDEX_TPL) \
-		$(PANDOC_HTML_OPT) \
+    $(PANDOC_HTML_OPT) \
+		$(PANDOC_BEFORE_INDEX) \
 		$(PANDOC_METADATA) \
 		-o $(BUILD)/writing.html /dev/null
 
