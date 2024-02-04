@@ -1,7 +1,6 @@
 ---
 title: "Why and why not"
 date: "2023-11-19"
-description: "The raison d'être of this website"
 ---
 
 ## Exposing yourself
