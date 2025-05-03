@@ -9,3 +9,6 @@ docs/
 
 # Misc
 templates/default.html
+
+# binaries
+*.out*
