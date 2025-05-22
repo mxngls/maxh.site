@@ -1,14 +1,17 @@
-# Drafts
+# drafts
 drafts/
 
-# Build
+# build
 docs/
 
-# General
+# general
 .DS_Store
 
-# Misc
+# misc
 templates/default.html
 
 # binaries
 *.out*
+
+# deps
+deps/
