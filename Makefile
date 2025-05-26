@@ -35,13 +35,13 @@ LINKER_FLAGS = $(LIBGIT2_LIB) $(SYSTEM_LIBS)
 deploy: clean build
 
 # build
-build: $(LIBGIT2_LIB)
-	@printf "%s\n" "Generating pages..."
+build: $(LIBGIT2_LIB) build.c
+	@printf "%s\n" "Building site generator..."
 	@$(COMPILER) $(COMPILER_FLAGS) build.c $(LINKER_FLAGS) -o build.out
+	@printf "%s\n" "Generating pages..."
 	@./build.out
-	@printf "%s\n" "Done."
 
-# Download and build libgit2
+# download and build libgit2
 $(LIBGIT2_LIB):
 	@printf "%s\n" "Setting up libgit2..."
 	@mkdir -p deps
@@ -63,12 +63,10 @@ clean:
 	@if [ -d "$(_SITE_OUT_DIR)" ]; then find "$(_SITE_OUT_DIR)" -mindepth 1 -delete; fi
 	@if [ -f "build.out" ]; then rm build.out; fi
 	@rm -f build.o
-	@printf "%s\n" "Done."
 
 # deep clean including dependencies
 distclean: clean
 	@printf "%s\n" "Removing dependencies..."
 	@rm -rf deps
-	@printf "%s\n" "Done."
 	
 .PHONY: build clean deploy distclean
