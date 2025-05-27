@@ -60,7 +60,7 @@ $(LIBGIT2_LIB):
 # clean the build directory
 clean:
 	@printf "%s\n" "Removing build artifacts..."
-	@if [ -d "$(_SITE_OUT_DIR)" ]; then find "$(_SITE_OUT_DIR)" -mindepth 1 -delete; fi
+	@if [ -d "$(_SITE_EXT_TARGET_DIR)" ]; then find "$(_SITE_EXT_TARGET_DIR)" -mindepth 1 -delete; fi
 	@if [ -f "build.out" ]; then rm build.out; fi
 	@rm -f build.o
 
