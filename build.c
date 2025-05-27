@@ -16,7 +16,11 @@
 #include <git2.h>
 
 #ifndef _SITE_EXT_TARGET_DIR
-#define _SITE_EXT_TARGET_DIR "/docs"
+#define _SITE_EXT_TARGET_DIR "docs"
+#endif
+
+#ifndef _SITE_EXT_GIT_DIR
+#define _SITE_EXT_GIT_DIR ".git"
 #endif
 
 #define _SITE_TITLE            "Max's Homepage"
@@ -658,7 +662,7 @@ int get_times(void) {
         git_tree *parent_tree = NULL;
         git_diff *diff = NULL;
 
-        if (git_repository_open(&repo, "./") != 0) goto error;
+        if (git_repository_open(&repo, _SITE_EXT_GIT_DIR) != 0) goto error;
         if (git_revwalk_new(&walker, repo)) goto error;
         if (git_revwalk_sorting(walker, GIT_SORT_TIME)) goto error;
         if (git_revwalk_push_head(walker)) goto error;

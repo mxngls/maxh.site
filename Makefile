@@ -3,6 +3,7 @@
 SHELL = /bin/sh
 
 _SITE_EXT_TARGET_DIR ?= docs/
+_SITE_EXT_GIT_DIR ?= .git/
 
 COMPILER = clang
 
@@ -27,6 +28,7 @@ COMPILER_FLAGS = \
 -Wpointer-arith \
 -D_FORTIFY_SOURCE=2 \
 -D_SITE_EXT_TARGET_DIR=\"$(_SITE_EXT_TARGET_DIR)\" \
+-D_SITE_EXT_GIT_DIR=\"$(_SITE_EXT_GIT_DIR)\" \
 -I$(LIBGIT2_DIR)/include
 
 LINKER_FLAGS = $(LIBGIT2_LIB) $(SYSTEM_LIBS)
