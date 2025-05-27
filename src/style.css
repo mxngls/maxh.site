@@ -3,17 +3,16 @@ body {
 	flex-direction: column;
 	justify-content: space-between;
 	line-height: 1.6;
-	margin-left: auto;
-	margin-right: auto;
+	margin: 0 auto;
 	max-width: 800px;
-	min-height: calc(100vh - 2rem);
+	min-height: calc(100vh - 3rem);
 	padding: 0.75rem;
 
 	font-family: "Source Sans 3", sans-serif;
 	font-optical-sizing: auto;
 	font-weight: 350;
 	font-style: normal;
-	font-size: 100%;
+	font-size: 105%;
 }
 
 main {
@@ -22,7 +21,7 @@ main {
 
 
 header {
-	margin-top: 2rem;
+	margin-top: 0.67em;
 }
 
 h1 {
@@ -40,25 +39,37 @@ pre {
 nav > ul {
 	list-style: none;
 	padding: 0;
+	display: flex;
+	align-items: baseline;
 }
 nav > ul > li {
-	display: inline-block;
 	margin-right: 1rem;
 }
 
-.index-block {
-	padding-top: 0.5rem;
+nav > ul > li > a {
+	font-weight: 600;
+}
+
+section {
+	padding-bottom: 0.5rem;
+}
+
+#index-title {
+	font-size: 26px;
+	margin-left: auto
 }
 
 #post-list div {
 	margin-bottom: 0.3em;
 }
-#post-list dt {
-	margin: 0;
+
+#post-list dt a {
+	text-decoration: none;
 }
 
 #post-list dd {
-	margin-top: 0.5em;
+	margin-top: 0;
+	margin-bottom: 1em;
 }
 
 #date-created, #date-updated {

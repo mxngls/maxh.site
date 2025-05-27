@@ -1,17 +1,17 @@
-#include <ctype.h>
-#include <dirent.h>
-#include <errno.h>
-#include <time.h>
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <ctype.h>
+#include <dirent.h>
+#include <errno.h>
 #include <fts.h>
 #include <ftw.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <git2.h>
 
@@ -28,28 +28,26 @@
 
 // clang-format off
 #define _SITE_HTML_FONT \
-	"<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n" \
-	"<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n" \
-	"<link href=\"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap\" rel=\"stylesheet\">\n"
+	"    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n" \
+	"    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n" \
+	"    <link href=\"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap\" rel=\"stylesheet\">\n"
 
 #define _SITE_NAV \
-	"<nav>\n" \
-	"	<ul>\n" \
-	"		<li><a href=\"/\">Home</a></li>\n" \
-	"		<li><a href=\"/#entries\">Entries</a></li>\n" \
-	"	</ul>\n" \
-	"</nav>\n"
+	"        <nav>\n" \
+	"            <ul>\n" \
+	"                <li><a href=\"/\">Home</a></li>\n" \
+	"                <li id=\"index-title\"><b>maxh.site</b></li>\n" \
+	"            </ul>\n" \
+	"        </nav>\n"
 // clang-format on
 
 typedef struct {
         const char *title;
         const char *subtitle;
-        char created[26];       // ISO-8601 UTC -> 2023-11-19T20:44:13+09:00
-        char updated[26];       // ISO-8601 UTC -> 2023-11-19T20:44:13+09:00
-        char created_short[11]; // YYYY-MM-DD -> 2023-11-19
-        char updated_short[11]; // YYYY-MM-DD -> 2023-11-19
         struct meta {
                 char path[_SITE_PATH_MAX];
+                int64_t created;
+                int64_t modified;
         } meta;
 } page_header;
 
@@ -58,15 +56,48 @@ typedef struct {
         int len;
 } page_header_arr;
 
+typedef struct {
+        char *file_path;
+        git_time_t creat_time;
+        git_time_t mod_time;
+} tracked_file;
+
+typedef struct {
+        tracked_file *files;
+        int len;
+        int capacity;
+} tracked_file_arr;
+
+typedef struct {
+        char *old_path;
+        char *new_path;
+        git_time_t creat_time;
+} rename_record;
+
+typedef struct {
+        rename_record *records;
+        int len;
+        int capacity;
+} renamed_file_arr;
+
+static tracked_file_arr tracked_arr = {.files = NULL, .len = 0, .capacity = 0};
+static renamed_file_arr rename_arr = {0};
+
 // utils
 int __copy_file(const char *, const char *);
-void __shorten_date(char *, char *, size_t);
 FTS *__init_fts(const char *);
 int __create_output_dirs(void);
 
 // work with page headers
 int compare_page_header(const void *, const void *);
 int parse_page_header(FILE *, page_header *);
+
+// libgit2 related (obtain modification and creation times)
+void add_rename(const char *, const char *, git_time_t);
+void trace_rename(const char *, git_time_t *, git_time_t *);
+tracked_file *find_file_by_path(const char *);
+int get_times_cb(const git_diff_delta *, __attribute__((unused)) float progress, void *payload);
+int get_times(void);
 
 // main routines
 page_header *process_page_file(FTSENT *);
@@ -93,27 +124,28 @@ int __copy_file(const char *from, const char *to) {
 
         char *line = NULL;
         size_t bufsize = 0;
-        ssize_t len;
-        int result = 0;
+        ssize_t len = 0;
+        int res = 0;
+
         while ((len = getline(&line, &bufsize, from_file)) > 0) {
                 if (fwrite(line, 1, (size_t)len, to_file) != (size_t)len) {
                         fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno,
                                 __LINE__);
-                        result = -1;
+                        res = -1;
                         break;
                 }
         }
 
         if (len < 0 && !feof(from_file) && ferror(from_file)) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
-                result = -1;
+                res = -1;
         }
 
         free(line);
         fclose(from_file);
         fclose(to_file);
 
-        return result;
+        return res;
 }
 
 int __create_output_dirs(void) {
@@ -150,16 +182,13 @@ FTS *__init_fts(const char *source) {
 }
 
 int compare_page_header(const void *a, const void *b) {
-        const page_header *header_a = (const page_header *)a;
-        const page_header *header_b = (const page_header *)b;
+        const page_header *header_a = *(const page_header **)a;
+        const page_header *header_b = *(const page_header **)b;
 
-        return strcmp(header_a->created, header_b->created);
-}
-
-void __shorten_date(char *in, char *out, size_t size) {
-        int year, month, day;
-        sscanf(in, "%d-%d-%d", &year, &month, &day);
-        snprintf(out, size, "%04d-%02d-%02d", year, month, day);
+        // descending order (newest first)
+        if (header_a->meta.created > header_b->meta.created) return -1;
+        if (header_a->meta.created < header_b->meta.created) return 1;
+        return 0;
 }
 
 int parse_page_header(FILE *file, page_header *header) {
@@ -168,22 +197,28 @@ int parse_page_header(FILE *file, page_header *header) {
         ssize_t read = 0;
         ssize_t readt = 0;
 
+        header->title = NULL;
+        header->subtitle = NULL;
+
         bool in_header = true;
         while (in_header && (readt += read = getline(&line, &len, file))) {
                 // newline
                 if (read <= 1 || line[0] == '\n') {
                         in_header = false;
-                        return (int)readt;
+                        break;
                 }
 
                 // remove newline
                 if (line[read - 1] == '\n') {
                         line[read - 1] = '\0';
+                        read--;
                 }
 
                 // split fields
                 char *colon = strchr(line, ':');
                 if (!colon) continue;
+
+                // key-value pair
                 *colon = '\0';
                 char *key = line;
                 char *value = colon + 1;
@@ -193,22 +228,16 @@ int parse_page_header(FILE *file, page_header *header) {
                 }
 
                 if (!value) {
-                        value = "";
+                        value = NULL;
                 }
 
                 if (strncmp(key, "title", read) == 0) header->title = strdup(value);
                 else if (strncmp(key, "subtitle", read) == 0) header->subtitle = strdup(value);
-                else if (strncmp(key, "updated", read) == 0) strcpy(header->updated, value);
-                else if (strncmp(key, "created", read) == 0) strcpy(header->created, value);
-
-                char date_created_short[11] = "";
-                __shorten_date(header->created, date_created_short, sizeof(date_created_short));
-                strcpy(header->created_short, date_created_short);
-
-                char date_updated_short[11] = "";
-                __shorten_date(header->updated, date_updated_short, sizeof(date_updated_short));
-                strcpy(header->updated_short, date_updated_short);
         }
+
+        free(line);
+
+        if (!header->title || !header->subtitle) return -1;
 
         return (int)readt;
 }
@@ -225,17 +254,20 @@ int create_html_index(char *page_content, const char *output_path, page_header_a
 
         fprintf_ret = fprintf(
             dest_file,
+            // clang-format off
             "<!DOCTYPE html>\n"
             "<html lang=\"en\">\n"
-            "<head>\n"
-            "	<meta charset=\"utf-8\">\n"
-            "    	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
-            "    	<link href=\"/atom.xml\" type=\"application/atom+xml\" rel=\"alternate\">\n"
-            "    	<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT
-            "\n"
-            "    	<title>%s</title>\n"
+            "    <head>\n"
+            "    <meta charset=\"utf-8\">\n"
+            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+            "    <link href=\"/atom.xml\" type=\"application/atom+xml\" rel=\"alternate\">\n"
+            "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT "\n"
+            "    <title>%s</title>\n"
             "</head>\n"
-            "<body>\n" _SITE_NAV "	<main>\n",
+            "<body>\n"
+	         _SITE_NAV
+            "    <main>\n",
+            // clang-format on
             _SITE_STYLE_SHEET_PATH, _SITE_TITLE);
 
         // content
@@ -247,25 +279,27 @@ int create_html_index(char *page_content, const char *output_path, page_header_a
         }
 
         // sort by creation time
-        qsort(header_arr->elems, header_arr->len, sizeof(page_header), compare_page_header);
+        qsort(header_arr->elems, header_arr->len, sizeof(page_header *), compare_page_header);
 
         // add a list of posts to the index
-        fprintf_ret = fprintf(dest_file, "<section class=\"index-block\">\n"
-                                         "<h3 id=\"entries\">Entries</h3>\n "
-                                         "<dl id=\"post-list\">\n");
+        fprintf_ret = fprintf(dest_file, "<section>\n"
+                                         "    <dl id=\"post-list\">\n");
 
         for (int i = 0; i < header_arr->len; i++) {
                 fprintf_ret = fprintf(dest_file,
-                                      "<dt><b><a href=\"%s\">%s</a></b></dt>\n"
-                                      "<dd>%s</dd>\n",
+                                      "    <dt>\n"
+                                      "         <b><a href=\"%s\">%s</a></b>\n"
+                                      "    </dt>\n"
+                                      "    <dd>%s</dd>\n",
                                       header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
                                       header_arr->elems[i]->subtitle);
         }
-        fprintf_ret = fprintf(dest_file, "</dl>\n"
+
+        fprintf_ret = fprintf(dest_file, "    </dl>\n"
                                          "</section>\n");
 
         // close <main>
-        fprintf_ret = fprintf(dest_file, "	</main>\n"
+        fprintf_ret = fprintf(dest_file, "    </main>\n"
                                          "</body>\n"
                                          "</html>\n");
 
@@ -280,6 +314,16 @@ int create_html_index(char *page_content, const char *output_path, page_header_a
         return 0;
 }
 
+void format_ts(char *format_str, char *formatted, time_t timestamp) {
+        time_t time = (time_t)timestamp;
+        struct tm tm;
+        if (gmtime_r(&time, &tm)) {
+                strftime(formatted, 256, format_str, &tm);
+        } else {
+                strcpy(formatted, "Invalid date");
+        }
+}
+
 int create_html_page(page_header *header, char *page_content, const char *output_path) {
         // html destination
         FILE *dest_file = fopen(output_path, "w");
@@ -291,29 +335,28 @@ int create_html_page(page_header *header, char *page_content, const char *output
 
         int fprintf_ret = 0;
 
-        struct tm tm;
-
-        // UTC encoded ISO-8601 full timestamp: 2023-11-19T20:44:13+09:00
         char created_formatted[256];
-        strptime(header->created, "%Y-%m-%dT%H:%M:%S%z", &tm);
-        strftime(created_formatted, sizeof(created_formatted), "%d %b %Y", &tm);
+        format_ts("%d %b, %Y", created_formatted, header->meta.created);
 
         fprintf_ret = fprintf(
             dest_file,
-            "<!DOCTYPE html>\n"
+            // clang-format off
+            "<!DOCTYPE html>"
             "<html lang=\"en\">\n"
             "<head>\n"
-            "	<meta charset=\"utf-8\">\n"
-            "    	<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
-            "    	<link href=\"/atom.xml\" type=\"application/atom+xml\" rel=\"alternate\">\n"
-            "    	<link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT
-            "\n"
-            "    	<title>%s</title>\n"
+            "    <meta charset=\"utf-8\">\n"
+            "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+            "	 <link href=\"/atom.xml\" type=\"application/atom+xml\" rel=\"alternate\">\n"
+            "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT "\n"
+            "    <title>%s</title>\n"
             "</head>\n"
-            "<body>\n" _SITE_NAV "	<header>\n"
-            "		<small id=\"date-created\">%s</small>\n"
-            "	</header>\n"
-            "	<main>\n",
+            "<body>\n"
+	         _SITE_NAV
+            "    <header>\n"
+            "	      <small id=\"date-created\">%s</small>\n"
+            "    </header>\n"
+            "    <main>\n",
+            // clang-format on
             _SITE_STYLE_SHEET_PATH, header->title, created_formatted);
 
         // add (sub)title
@@ -331,16 +374,22 @@ int create_html_page(page_header *header, char *page_content, const char *output
                 fprintf_ret = fprintf(dest_file, "%s\n", line);
                 line = strtok(NULL, "\n");
         }
+        fprintf_ret = fprintf(dest_file, "        </main>\n");
 
-        // close <main>
-        fprintf(dest_file,
-                "	</main>\n"
-                "	<footer>\n"
-                "		<small id=\"date-updated\">Last Updated on %s</small>\n"
-                "	</footer>\n"
-                "</body>\n"
-                "</html>\n",
-                header->updated_short);
+        if (header->meta.modified) {
+                char modified_formatted[256];
+                format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
+                fprintf_ret =
+                    fprintf(dest_file,
+                            "        <footer>\n"
+                            "            <small id=\"date-updated\">Last Updated on %s</small>\n"
+                            "        </footer>\n",
+                            modified_formatted);
+        }
+
+        // close html
+        fprintf_ret = fprintf(dest_file, "</body>\n"
+                                         "</html>\n");
 
         if (fprintf_ret < 0) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
@@ -354,75 +403,94 @@ int create_html_page(page_header *header, char *page_content, const char *output
 }
 
 page_header *process_page_file(FTSENT *ftsentp) {
-        int iserror = false;
+        page_header *res = NULL;
+        FILE *source_file = NULL;
+        tracked_file *tracked = NULL;
+        page_header *header = NULL;
+        char *page_content = NULL;
 
-        FILE *source_file = fopen(ftsentp->fts_path, "r");
-        if (source_file == NULL) {
+        if ((source_file = fopen(ftsentp->fts_path, "r")) == NULL) {
                 fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
                         ftsentp->fts_path, strerror(errno), errno, __LINE__);
-                return NULL;
+                goto error;
         }
 
         // output path
         char page_path[_SITE_PATH_MAX];
         snprintf(page_path, sizeof(page_path), "%s/%s", _SITE_EXT_TARGET_DIR, ftsentp->fts_name);
 
-        page_header *header = calloc(1, sizeof(page_header));
-        if (header == NULL) {
+        if ((header = calloc(1, sizeof(page_header))) == NULL) {
                 fprintf(stderr, "Memory allocation failed\n");
-                free(header);
-                fclose(source_file);
-                return NULL;
+                goto error;
         }
         char page_href[100] = "/";
         strcat(page_href, ftsentp->fts_name);
         strncpy(header->meta.path, page_href, _SITE_PATH_MAX - 1);
 
+        if ((tracked = find_file_by_path(ftsentp->fts_path))) {
+                header->meta.created = tracked->creat_time;
+                header->meta.modified = tracked->mod_time;
+        }
+
         // read content
-        int header_len = parse_page_header(source_file, header);
+        int header_len = -1;
+        if ((header_len = parse_page_header(source_file, header)) == -1) {
+                fprintf(stderr, "Title and subtitle headers missing: %s\n", ftsentp->fts_name);
+                goto error;
+        };
         size_t content_size = ftsentp->fts_statp->st_size - header_len;
-        char *page_content = malloc(content_size + 1);
+        page_content = malloc(content_size + 1);
         if (page_content == NULL) {
                 fprintf(stderr, "Memory allocation failed for content\n");
-                iserror = true;
+                goto error;
         }
         size_t bytes_read = fread(page_content, 1, content_size, source_file);
         if (bytes_read != content_size) {
                 if (feof(source_file)) {
-                        printf("Page has no content. Aborting.\n");
-                        iserror = true;
+                        fprintf(stderr, "Page has no content. Aborting.\n");
+                        goto error;
                 } else if (ferror(source_file)) {
                         fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
                                 ftsentp->fts_path, strerror(errno), errno, __LINE__);
-                        iserror = true;
+                        goto error;
                 }
         }
 
         // create valid html file
         if (create_html_page(header, page_content, page_path) != 0) {
+                goto error;
         };
 
-        // cleanup
-        fclose(source_file);
+        res = header;
+        header = NULL;
+        goto cleanup;
 
-        return iserror ? NULL : header;
+error:
+        res = NULL;
+
+cleanup:
+        if (source_file) fclose(source_file);
+        if (page_content) free(page_content);
+        if (header) free(header);
+
+        return res;
 }
 
 int process_index_file(char *index_file_path, page_header_arr *header_arr) {
-        int result = 0;
+        int res = 0;
+        FILE *source_file = NULL;
+        char *page_content = NULL;
 
-        FILE *source_file = fopen(index_file_path, "r");
-        if (source_file == NULL) {
+        if ((source_file = fopen(index_file_path, "r")) == NULL) {
                 fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
                         index_file_path, strerror(errno), errno, __LINE__);
-                result = -1;
+                goto error;
         }
 
         struct stat source_file_stat;
         if (stat(index_file_path, &source_file_stat) != 0) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
-                fclose(source_file);
-                result = -1;
+                goto error;
         }
 
         // output path
@@ -431,57 +499,228 @@ int process_index_file(char *index_file_path, page_header_arr *header_arr) {
         filename ? filename++ : (filename = index_file_path);
         snprintf(page_path, sizeof(page_path), "%s/%s", _SITE_EXT_TARGET_DIR, filename);
 
-        page_header *header = calloc(1, sizeof(page_header));
-        if (header == NULL) {
-                fprintf(stderr, "Memory allocation failed\n");
-                fclose(source_file);
-                result = -1;
-        }
-
-        // read content
-        int header_len = parse_page_header(source_file, header);
-        size_t content_size = source_file_stat.st_size - header_len;
-        char *page_content = malloc(content_size + 1);
-        if (page_content == NULL) {
+        size_t content_size = source_file_stat.st_size;
+        if ((page_content = malloc(content_size + 1)) == NULL) {
                 fprintf(stderr, "Memory allocation failed for content\n");
-                result = -1;
+                goto error;
         }
 
         ssize_t bytes_read = fread(page_content, 1, source_file_stat.st_size, source_file);
-        if (bytes_read != source_file_stat.st_size - header_len) {
+        if (bytes_read != source_file_stat.st_size) {
                 if (feof(source_file)) {
-                        printf("Unexpected EOF. Read %zu bytes, expected %jd\n", bytes_read,
-                               (intmax_t)source_file_stat.st_size);
-                        result = -1;
+                        fprintf(stderr, "Unexpected EOF. Read %zu bytes, expected %jd\n",
+                                bytes_read, (intmax_t)source_file_stat.st_size);
+                        goto error;
                 } else if (ferror(source_file)) {
                         fprintf(stderr, "Failed to read from source %s: %s (errno: %d, line: %d)\n",
                                 index_file_path, strerror(errno), errno, __LINE__);
-                        result = -1;
+                        goto error;
                 }
-                free(page_content);
-                fclose(source_file);
-                return result;
         }
         page_content[bytes_read] = '\0';
+        res = create_html_index(page_content, page_path, header_arr);
+        goto cleanup;
 
-        result = create_html_index(page_content, page_path, header_arr);
+error:
+        res = -1;
 
-        // cleanup
-        free(page_content);
-        fclose(source_file);
+cleanup:
+        if (page_content) free(page_content);
+        if (source_file) fclose(source_file);
 
-        return result;
+        return res;
+}
+
+tracked_file *find_file_by_path(const char *file_path) {
+        for (int i = 0; i < tracked_arr.len; i++) {
+                if (strcmp(tracked_arr.files[i].file_path, file_path) == 0) {
+                        return &tracked_arr.files[i];
+                }
+        }
+        return NULL;
+}
+
+void add_rename(const char *old_path, const char *new_path, git_time_t timestamp) {
+        if (rename_arr.records == NULL) {
+                rename_arr.records = malloc(sizeof(rename_record) * 100);
+                rename_arr.capacity = 100;
+        } else if (rename_arr.capacity == rename_arr.len) {
+                rename_arr.capacity *= 2;
+                rename_arr.records =
+                    realloc(rename_arr.records, rename_arr.capacity * sizeof(rename_record));
+        }
+
+        rename_arr.records[rename_arr.len] = (rename_record){
+            .old_path = strdup(old_path),
+            .new_path = strdup(new_path),
+            .creat_time = timestamp,
+        };
+        rename_arr.len++;
+}
+
+void trace_rename(const char *final_path, git_time_t *creation_time,
+                  git_time_t *modification_time) {
+
+        char *current_path = strdup(final_path);
+
+        for (int i = rename_arr.len - 1; i >= 0; i--) {
+                if (strcmp(rename_arr.records[i].new_path, current_path) != 0) continue;
+
+                *modification_time =
+                    *modification_time == 0 ? rename_arr.records[i].creat_time : *modification_time;
+                *creation_time = rename_arr.records[i].creat_time;
+
+                current_path = strdup(rename_arr.records[i].old_path);
+
+                i = rename_arr.len;
+        }
+
+        free(current_path);
+}
+
+int get_times_cb(const git_diff_delta *delta, __attribute__((unused)) float progress,
+                 void *payload) {
+        if (!delta || !delta->new_file.path) return 0;
+
+        // Ensure array capacity
+        if (tracked_arr.files == NULL) {
+                tracked_arr.files = malloc(sizeof(tracked_file) * 100);
+                tracked_arr.capacity = 100;
+        } else if (tracked_arr.capacity == tracked_arr.len) {
+                tracked_arr.capacity *= 2;
+                tracked_arr.files =
+                    realloc(tracked_arr.files, tracked_arr.capacity * sizeof(tracked_file));
+                if (!tracked_arr.files) return -1;
+        }
+
+        const char *file_path = delta->new_file.path;
+        const char *old_file_path = delta->old_file.path;
+
+        git_signature *signature = (git_signature *)payload;
+        git_time_t author_time = signature->when.time;
+
+        // rename detected
+        if (delta->similarity > 50 && strcmp(old_file_path, file_path) != 0) {
+                add_rename(old_file_path, file_path, author_time);
+
+                if (access(file_path, F_OK) == 0 && !find_file_by_path(file_path)) {
+                        tracked_file new_file = {
+                            .file_path = strdup(file_path),
+                            .creat_time = author_time,
+                            .mod_time = author_time,
+                        };
+                        tracked_arr.files[tracked_arr.len] = new_file;
+                        tracked_arr.len++;
+                }
+                return 0;
+        }
+
+        // regular file change
+        if (access(file_path, F_OK) != 0) return 0;
+
+        tracked_file *tracked = find_file_by_path(file_path);
+        if (tracked) {
+                tracked->mod_time = author_time;
+                return 0;
+        }
+
+        // new file
+        tracked_file new_file = {
+            .file_path = strdup(file_path),
+            .creat_time = author_time,
+            .mod_time = 0,
+        };
+
+        tracked_arr.files[tracked_arr.len] = new_file;
+        tracked_arr.len++;
+
+        return 0;
+}
+
+int get_times(void) {
+        int res = 0;
+
+        git_libgit2_init();
+
+        git_oid oid;
+        git_repository *repo = NULL;
+        git_revwalk *walker = NULL;
+        git_commit *commit = NULL;
+        git_commit *parent = NULL;
+        git_tree *tree = NULL;
+        git_tree *parent_tree = NULL;
+        git_diff *diff = NULL;
+
+        if (git_repository_open(&repo, "./") != 0) goto error;
+        if (git_revwalk_new(&walker, repo)) goto error;
+        if (git_revwalk_sorting(walker, GIT_SORT_TIME)) goto error;
+        if (git_revwalk_push_head(walker)) goto error;
+
+        while (git_revwalk_next(&oid, walker) == 0) {
+                // free previously allocted resources
+                // clang-format off
+                if (commit) { git_commit_free(commit); commit = NULL; }
+                if (parent) { git_commit_free(parent); parent = NULL; }
+                if (tree) { git_tree_free(tree); tree = NULL; }
+                if (parent_tree) { git_tree_free(parent_tree); parent_tree = NULL; }
+                if (diff) { git_diff_free(diff); diff = NULL; }
+                // clang-format on
+
+                if (git_commit_lookup(&commit, repo, &oid)) goto error;
+
+                int parent_count = git_commit_parentcount(commit);
+                if (parent_count != 1) continue;
+
+                if (git_commit_parent(&parent, commit, 0)) goto error;
+                if (git_commit_tree(&tree, commit)) goto error;
+                if (git_commit_tree(&parent_tree, parent)) goto error;
+                if (git_diff_tree_to_tree(&diff, repo, parent_tree, tree, NULL)) goto error;
+
+                // enable dection of renamed files
+                git_diff_find_options *find_opts = malloc(sizeof(git_diff_find_options));
+                if (git_diff_find_options_init(find_opts, GIT_DIFF_FIND_OPTIONS_VERSION))
+                        goto error;
+                find_opts->flags = GIT_DIFF_FIND_RENAMES | GIT_DIFF_FIND_IGNORE_WHITESPACE;
+                if (git_diff_find_similar(diff, find_opts)) goto error;
+
+                const git_signature *signature = git_commit_author(commit);
+                if (git_diff_foreach(diff, &get_times_cb, NULL, NULL, NULL, (void *)signature))
+                        goto error;
+        }
+
+        // resolve renames
+        for (int i = 0; i < tracked_arr.len; i++) {
+                git_time_t creation_time = 0;
+                git_time_t last_rename_time = 0;
+                trace_rename(tracked_arr.files[i].file_path, &creation_time, &last_rename_time);
+                if (creation_time > 0) {
+                        tracked_arr.files[i].creat_time = creation_time;
+                }
+                if (last_rename_time > 0) {
+                        tracked_arr.files[i].mod_time = last_rename_time;
+                }
+        }
+
+        goto cleanup;
+
+error:
+        res = -1;
+        const git_error *err = git_error_last();
+        fprintf(stderr, "Git error: %s\n", err ? err->message : "unknown error");
+
+cleanup:
+        git_repository_free(repo);
+        git_revwalk_free(walker);
+        git_commit_free(commit);
+        git_commit_free(parent);
+        git_tree_free(tree);
+        git_tree_free(parent_tree);
+
+        return res;
 }
 
 int main(void) {
-        git_libgit2_init();
-
-        git_repository **repo = NULL;
-        if (git_repository_open(repo, "./") != 0) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
-                return -1;
-        }
-        int result = 0;
+        int res = 0;
         FTS *ftsp = NULL;
         FTSENT *ftsentp = NULL;
 
@@ -491,20 +730,22 @@ int main(void) {
         };
 
         if (__create_output_dirs() != 0) {
-                result = -1;
+                res = -1;
         }
 
         if (__copy_file(_SITE_SOURCE_DIR _SITE_STYLE_SHEET_PATH,
                         _SITE_EXT_TARGET_DIR _SITE_STYLE_SHEET_PATH) != 0) {
-                result = -1;
+                res = -1;
         }
 
+        res = get_times();
+
         if ((ftsp = __init_fts(_SITE_SOURCE_DIR)) == NULL) {
-                result = -1;
+                res = -1;
         }
 
         while ((ftsentp = fts_read(ftsp)) != NULL) {
-                // we only care for plain non-hidden files
+                // we only care for plain non-hidden __files__
                 if (ftsentp->fts_info != FTS_F) continue;
                 if (ftsentp->fts_name[0] == '.') continue;
 
@@ -540,7 +781,7 @@ int main(void) {
 
                 page_header *header = NULL;
                 if ((header = process_page_file(ftsentp)) == NULL) {
-                        result = -1;
+                        res = -1;
                 } else {
                         header_arr.elems[header_arr.len] = header;
                         header_arr.len++;
@@ -548,17 +789,19 @@ int main(void) {
         }
 
         if (process_index_file(_SITE_SOURCE_DIR _SITE_INDEX_PATH, &header_arr) != 0) {
-                fts_close(ftsp);
-                result = -1;
+                res = -1;
         }
 
+        // cleanup
         fts_close(ftsp);
-
         for (int i = 0; i < header_arr.len; i++) {
                 free((char *)header_arr.elems[i]->title);
                 free((char *)header_arr.elems[i]->subtitle);
                 free(header_arr.elems[i]);
         }
+        for (int i = 0; i < tracked_arr.len; i++) {
+                free(tracked_arr.files[i].file_path);
+        }
 
-        return result;
+        return res;
 }
