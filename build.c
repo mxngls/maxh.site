@@ -448,13 +448,17 @@ page_header *process_page_file(FTSENT *ftsentp) {
         if (bytes_read != content_size) {
                 if (feof(source_file)) {
                         fprintf(stderr, "Page has no content. Aborting.\n");
-                        goto error;
                 } else if (ferror(source_file)) {
                         fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
                                 ftsentp->fts_path, strerror(errno), errno, __LINE__);
-                        goto error;
+                } else {
+                        fprintf(
+                            stderr,
+                            "Reported Source file size length and number of bytes read differs.\n");
                 }
+                goto error;
         }
+        page_content[bytes_read] = '\0';
 
         // create valid html file
         if (create_html_page(header, page_content, page_path) != 0) {
@@ -510,12 +514,15 @@ int process_index_file(char *index_file_path, page_header_arr *header_arr) {
                 if (feof(source_file)) {
                         fprintf(stderr, "Unexpected EOF. Read %zu bytes, expected %jd\n",
                                 bytes_read, (intmax_t)source_file_stat.st_size);
-                        goto error;
                 } else if (ferror(source_file)) {
                         fprintf(stderr, "Failed to read from source %s: %s (errno: %d, line: %d)\n",
                                 index_file_path, strerror(errno), errno, __LINE__);
-                        goto error;
+                } else {
+                        fprintf(
+                            stderr,
+                            "Reported Source file size length and number of bytes read differs.\n");
                 }
+                goto error;
         }
         page_content[bytes_read] = '\0';
         res = create_html_index(page_content, page_path, header_arr);
