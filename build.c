@@ -366,7 +366,9 @@ int create_html_page(page_header *header, char *page_content, const char *output
         // add header group
         fprintf_ret = fprintf(dest_file,
                               "            <hgroup>\n"
-                              "                <p><small id=\"date-created\">%s</small></p>\n"
+                              "                <p>\n"
+                              "                    <small id=\"date-created\">%s</small>\n"
+                              "                </p>\n"
                               "                <h1>%s</h1>\n"
                               "                <p>%s</p>\n"
                               "            </hgroup>\n",
@@ -387,9 +389,9 @@ int create_html_page(page_header *header, char *page_content, const char *output
                 format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
                 fprintf_ret =
                     fprintf(dest_file,
-                            "        <footer>\n"
+                            "        <p>\n"
                             "            <small id=\"date-updated\">Last Updated on %s</small>\n"
-                            "        </footer>\n",
+                            "        </p>\n",
                             modified_formatted);
         }
 
