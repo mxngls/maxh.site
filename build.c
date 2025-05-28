@@ -36,13 +36,15 @@
 	"    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n" \
 	"    <link href=\"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap\" rel=\"stylesheet\">\n"
 
-#define _SITE_NAV \
+#define _SITE_HEADER \
+	"    <header>\n"\
 	"        <nav>\n" \
 	"            <ul>\n" \
 	"                <li><a href=\"/\">Home</a></li>\n" \
 	"                <li id=\"index-title\"><b>maxh.site</b></li>\n" \
 	"            </ul>\n" \
-	"        </nav>\n"
+	"        </nav>\n" \
+	"    </header>\n"
 // clang-format on
 
 typedef struct {
@@ -269,7 +271,7 @@ int create_html_index(char *page_content, const char *output_path, page_header_a
             "    <title>%s</title>\n"
             "</head>\n"
             "<body>\n"
-	         _SITE_NAV
+	         _SITE_HEADER
             "    <main>\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, _SITE_TITLE);
@@ -355,21 +357,20 @@ int create_html_page(page_header *header, char *page_content, const char *output
             "    <title>%s</title>\n"
             "</head>\n"
             "<body>\n"
-	         _SITE_NAV
-            "    <header>\n"
-            "	      <small id=\"date-created\">%s</small>\n"
-            "    </header>\n"
-            "    <main>\n",
+	         _SITE_HEADER
+            "    <main>\n"
+	    "        <article>\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, header->title, created_formatted);
+            _SITE_STYLE_SHEET_PATH, header->title);
 
-        // add (sub)title
-        if (header->title) {
-                fprintf_ret = fprintf(dest_file, "<h1>%s</h1>\n", header->title);
-        }
-        if (header->subtitle) {
-                fprintf_ret = fprintf(dest_file, "<p>%s</p>\n", header->subtitle);
-        }
+        // add header group
+        fprintf_ret = fprintf(dest_file,
+                              "            <hgroup>\n"
+                              "                <p><small id=\"date-created\">%s</small></p>\n"
+                              "                <h1>%s</h1>\n"
+                              "                <p>%s</p>\n"
+                              "            </hgroup>\n",
+                              created_formatted, header->title, header->subtitle);
 
         // content
         char *line = strtok((char *)page_content, "\n");
@@ -378,7 +379,8 @@ int create_html_page(page_header *header, char *page_content, const char *output
                 fprintf_ret = fprintf(dest_file, "%s\n", line);
                 line = strtok(NULL, "\n");
         }
-        fprintf_ret = fprintf(dest_file, "        </main>\n");
+        fprintf_ret = fprintf(dest_file, "        </article>\n"
+                                         "    </main>\n");
 
         if (header->meta.modified) {
                 char modified_formatted[256];

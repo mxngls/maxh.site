@@ -24,10 +24,6 @@ header {
 	margin-top: 0.67em;
 }
 
-h1 {
-	margin-top: 0;
-}
-
 footer {
 	margin-top: 2rem;
 }
@@ -52,6 +48,20 @@ nav > ul > li > a {
 
 section {
 	padding-bottom: 0.5rem;
+}
+
+hgroup {
+	margin-top: 0.67em;
+	margin-bottom: 2em;
+}
+
+hgroup > h1 {
+	margin-top: 0;
+	font-size: 2rem;
+}
+
+hgroup p:first-of-type {
+	margin: 0;
 }
 
 #index-title {
