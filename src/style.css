@@ -32,18 +32,19 @@ pre {
 	overflow-x: auto;
 }
 
-nav > ul {
+nav>ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
 	display: flex;
 	align-items: baseline;
 }
-nav > ul > li {
+
+nav>ul>li {
 	margin-right: 1rem;
 }
 
-nav > ul > li > a {
+nav>ul>li>a {
 	font-weight: 600;
 }
 
@@ -56,7 +57,7 @@ hgroup {
 	margin-bottom: 2em;
 }
 
-hgroup > h1 {
+hgroup>h1 {
 	margin-top: 0;
 	font-size: 2rem;
 }
@@ -83,7 +84,8 @@ hgroup p:first-of-type {
 	margin-bottom: 1em;
 }
 
-#date-created, #date-updated {
+#date-created,
+#date-updated {
 	color: #808080;
 	opacity: 0.7;
 	font-weight: 600;
