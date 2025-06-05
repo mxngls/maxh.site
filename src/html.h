@@ -17,14 +17,30 @@
 	"        <nav>\n" \
 	"            <ul>\n" \
 	"                <li><a href=\"/\">Home</a></li>\n" \
+	"                <li><a href=\"/feed.xml\">feed</a></li>\n" \
 	"                <li id=\"index-title\"><b>maxh.site</b></li>\n" \
 	"            </ul>\n" \
 	"        </nav>\n" \
 	"    </header>\n"
 // clang-format on
 
+typedef struct {
+        char *content;
+        struct {
+                char path[_SITE_PATH_MAX];
+        } meta;
+} page_content;
+
+typedef struct {
+        page_content *elems[_SITE_PAGES_MAX];
+        int len;
+} page_content_arr;
+
+extern page_content_arr content_arr;
+
 // create html files
 int html_create_page(page_header *, char *, char *);
 int html_create_index(char *, char *, page_header_arr *);
+char *html_escape_content(char *);
 
 #endif // HTML_H

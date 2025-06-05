@@ -4,6 +4,7 @@
 #include <fts.h>
 #include <ftw.h>
 
+#include "feed.h"
 #include "ghist.h"
 #include "html.h"
 #include "page.h"
@@ -19,7 +20,16 @@
 #define _SITE_INDEX_PATH "index.html"
 #define _SITE_SOURCE_DIR "content/"
 
-tracked_file_arr tracked_arr = {.files = NULL, .len = 0, .capacity = 0};
+page_content_arr content_arr = {
+    .elems = {0},
+    .len = 0,
+};
+
+tracked_file_arr tracked_arr = {
+    .files = NULL,
+    .len = 0,
+    .capacity = 0,
+};
 
 // utils
 int __copy_file(char *, char *);
@@ -312,6 +322,10 @@ int main(void) {
         }
 
         if (process_index_file(_SITE_SOURCE_DIR _SITE_INDEX_PATH, &header_arr) != 0) {
+                res = -1;
+        }
+
+        if (create_feed(_SITE_EXT_TARGET_DIR "feed.xml", &header_arr) == 0) {
                 res = -1;
         }
 
