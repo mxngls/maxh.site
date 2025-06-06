@@ -1,8 +1,7 @@
 CompileFlags:
   Add: [
-    -xc,
     -std=c99, 
-    -fsanitize=undefined, 
+    -fsanitize=address,undefined, 
     -Wall, 
     -Wextra, 
     -Wconversion, 

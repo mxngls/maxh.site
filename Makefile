@@ -17,7 +17,7 @@ SYSTEM_LIBS = -lz -lssl -lcrypto -L/usr/local/lib -lpcre
 
 COMPILER_FLAGS = \
 -std=c99 \
--fsanitize=undefined \
+-fsanitize=address,undefined \
 -Wall \
 -Wextra \
 -Wconversion \
@@ -26,7 +26,6 @@ COMPILER_FLAGS = \
 -Werror \
 -Wpedantic \
 -Wpointer-arith \
--D_FORTIFY_SOURCE=2 \
 -D_SITE_EXT_TARGET_DIR=\"$(_SITE_EXT_TARGET_DIR)\" \
 -D_SITE_EXT_GIT_DIR=\"$(_SITE_EXT_GIT_DIR)\" \
 -I$(LIBGIT2_DIR)/include
