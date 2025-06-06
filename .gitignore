@@ -4,14 +4,11 @@ drafts/
 # build
 docs/
 
+# cache
+.cache
+
 # general
 .DS_Store
-
-# Build directory
-docs/
-
-# Misc
-templates/default.html
 
 # binaries
 *.out*
@@ -21,3 +18,6 @@ deps/
 
 # local
 .local
+
+# misc
+compile_commands.json
