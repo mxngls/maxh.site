@@ -7,6 +7,8 @@ _SITE_EXT_GIT_DIR ?= .git/
 
 COMPILER = clang
 
+SRC_DIR = src/
+
 LIBGIT2_VERSION = v1.9.0
 LIBGIT2_DIR = deps/libgit2
 LIBGIT2_BUILD = $(LIBGIT2_DIR)/build
@@ -36,9 +38,9 @@ LINKER_FLAGS = $(LIBGIT2_LIB) $(SYSTEM_LIBS)
 deploy: clean build
 
 # build
-build: $(LIBGIT2_LIB) build.c
+build: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
 	@printf "%s\n" "Building site generator..."
-	@$(COMPILER) $(COMPILER_FLAGS) build.c $(LINKER_FLAGS) -o build.out
+	@$(COMPILER) $(COMPILER_FLAGS) $(SRC_DIR)/*.c $(LINKER_FLAGS) -o build.out
 	@printf "%s\n" "Generating pages..."
 	@./build.out
 
