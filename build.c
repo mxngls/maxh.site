@@ -48,8 +48,8 @@
 // clang-format on
 
 typedef struct {
-        const char *title;
-        const char *subtitle;
+        char *title;
+        char *subtitle;
         struct meta {
                 char path[_SITE_PATH_MAX];
                 int64_t created;
@@ -90,8 +90,8 @@ static tracked_file_arr tracked_arr = {.files = NULL, .len = 0, .capacity = 0};
 static renamed_file_arr rename_arr = {0};
 
 // utils
-int __copy_file(const char *, const char *);
-FTS *__init_fts(const char *);
+int __copy_file(char *, char *);
+FTS *__init_fts(char *);
 int __create_output_dirs(void);
 
 // work with page headers
@@ -99,19 +99,19 @@ int compare_page_header(const void *, const void *);
 int parse_page_header(FILE *, page_header *);
 
 // libgit2 related (obtain modification and creation times)
-void add_rename(const char *, const char *, git_time_t);
-void trace_rename(const char *, git_time_t *, git_time_t *);
-tracked_file *find_file_by_path(const char *);
+void add_rename(char *, char *, git_time_t);
+void trace_rename(char *, git_time_t *, git_time_t *);
+tracked_file *find_file_by_path(char *);
 int get_times_cb(const git_diff_delta *, __attribute__((unused)) float progress, void *payload);
 int get_times(void);
 
 // main routines
 page_header *process_page_file(FTSENT *);
 int process_index_file(char *, page_header_arr *);
-int create_html_page(page_header *, char *, const char *);
-int create_html_index(char *, const char *, page_header_arr *);
+int create_html_page(page_header *, char *, char *);
+int create_html_index(char *, char *, page_header_arr *);
 
-int __copy_file(const char *from, const char *to) {
+int __copy_file(char *from, char *to) {
         FILE *from_file = NULL;
         FILE *to_file = NULL;
 
@@ -169,7 +169,7 @@ int __create_output_dirs(void) {
         return 0;
 }
 
-FTS *__init_fts(const char *source) {
+FTS *__init_fts(char *source) {
         FTS *ftsp = NULL;
         char *paths[] = {(char *)source, NULL};
         int _fts_options = FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR;
@@ -188,8 +188,8 @@ FTS *__init_fts(const char *source) {
 }
 
 int compare_page_header(const void *a, const void *b) {
-        const page_header *header_a = *(const page_header **)a;
-        const page_header *header_b = *(const page_header **)b;
+        page_header *header_a = *(page_header **)a;
+        page_header *header_b = *(page_header **)b;
 
         // descending order (newest first)
         if (header_a->meta.created > header_b->meta.created) return -1;
@@ -248,7 +248,7 @@ int parse_page_header(FILE *file, page_header *header) {
         return (int)readt;
 }
 
-int create_html_index(char *page_content, const char *output_path, page_header_arr *header_arr) {
+int create_html_index(char *page_content, char *output_path, page_header_arr *header_arr) {
         // html destination
         FILE *dest_file = fopen(output_path, "w");
         if (dest_file == NULL) {
@@ -330,7 +330,7 @@ void format_ts(char *format_str, char *formatted, time_t timestamp) {
         }
 }
 
-int create_html_page(page_header *header, char *page_content, const char *output_path) {
+int create_html_page(page_header *header, char *page_content, char *output_path) {
         // html destination
         FILE *dest_file = fopen(output_path, "w");
         if (dest_file == NULL) {
@@ -507,7 +507,7 @@ int process_index_file(char *index_file_path, page_header_arr *header_arr) {
 
         // output path
         char page_path[_SITE_PATH_MAX];
-        const char *filename = strrchr(index_file_path, '/');
+        char *filename = strrchr(index_file_path, '/');
         filename ? filename++ : (filename = index_file_path);
         snprintf(page_path, sizeof(page_path), "%s/%s", _SITE_EXT_TARGET_DIR, filename);
 
@@ -546,7 +546,7 @@ cleanup:
         return res;
 }
 
-tracked_file *find_file_by_path(const char *file_path) {
+tracked_file *find_file_by_path(char *file_path) {
         for (int i = 0; i < tracked_arr.len; i++) {
                 if (strcmp(tracked_arr.files[i].file_path, file_path) == 0) {
                         return &tracked_arr.files[i];
@@ -555,7 +555,7 @@ tracked_file *find_file_by_path(const char *file_path) {
         return NULL;
 }
 
-void add_rename(const char *old_path, const char *new_path, git_time_t timestamp) {
+void add_rename(char *old_path, char *new_path, git_time_t timestamp) {
         if (rename_arr.records == NULL) {
                 rename_arr.records = malloc(sizeof(rename_record) * 100);
                 rename_arr.capacity = 100;
@@ -573,8 +573,7 @@ void add_rename(const char *old_path, const char *new_path, git_time_t timestamp
         rename_arr.len++;
 }
 
-void trace_rename(const char *final_path, git_time_t *creation_time,
-                  git_time_t *modification_time) {
+void trace_rename(char *final_path, git_time_t *creation_time, git_time_t *modification_time) {
 
         char *current_path = strdup(final_path);
 
@@ -608,8 +607,8 @@ int get_times_cb(const git_diff_delta *delta, __attribute__((unused)) float prog
                 if (!tracked_arr.files) return -1;
         }
 
-        const char *file_path = delta->new_file.path;
-        const char *old_file_path = delta->old_file.path;
+        char *file_path = (char *)delta->new_file.path;
+        char *old_file_path = (char *)delta->old_file.path;
 
         git_signature *signature = (git_signature *)payload;
         git_time_t author_time = signature->when.time;
@@ -698,7 +697,7 @@ int get_times(void) {
                 find_opts->flags = GIT_DIFF_FIND_RENAMES | GIT_DIFF_FIND_IGNORE_WHITESPACE;
                 if (git_diff_find_similar(diff, find_opts)) goto error;
 
-                const git_signature *signature = git_commit_author(commit);
+                git_signature *signature = (git_signature *)git_commit_author(commit);
                 if (git_diff_foreach(diff, &get_times_cb, NULL, NULL, NULL, (void *)signature))
                         goto error;
         }
@@ -720,7 +719,7 @@ int get_times(void) {
 
 error:
         res = -1;
-        const git_error *err = git_error_last();
+        git_error *err = (git_error *)git_error_last();
         fprintf(stderr, "Git error: %s\n", err ? err->message : "unknown error");
 
 cleanup:
