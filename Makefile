@@ -15,11 +15,10 @@ LIBGIT2_BUILD = $(LIBGIT2_DIR)/build
 LIBGIT2_LIB = $(LIBGIT2_BUILD)/libgit2.a
 
 # run on FreeBSD
-SYSTEM_LIBS = -lz -lssl -lcrypto -L/usr/local/lib -lpcre
+SYSTEM_LIBS = -L/usr/local/lib -lpthread -lz -lpcre -lssl -lcrypto
 
 COMPILER_FLAGS = \
 -std=c99 \
--fsanitize=address,undefined \
 -Wall \
 -Wextra \
 -Wconversion \
@@ -32,10 +31,21 @@ COMPILER_FLAGS = \
 -D_SITE_EXT_GIT_DIR=\"$(_SITE_EXT_GIT_DIR)\" \
 -I$(LIBGIT2_DIR)/include
 
+DEBUG_COMPILER_FLAGS = \
+--debug \
+-fsanitize=address,undefined
+
 LINKER_FLAGS = $(LIBGIT2_LIB) $(SYSTEM_LIBS)
 
 # deploy
 deploy: clean build
+
+# debug build target
+debug: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
+	@printf "%s\n" "Building site generator (DEBUG)..."
+	@$(COMPILER) $(DEBUG_COMPILER_FLAGS) $(COMPILER_FLAGS) $(SRC_DIR)/*.c $(LINKER_FLAGS) -o build.out
+	@printf "%s\n" "Generating pages (DEBUG)..."
+	@./build.out
 
 # build
 build: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
@@ -72,4 +82,4 @@ distclean: clean
 	@printf "%s\n" "Removing dependencies..."
 	@rm -rf deps
 	
-.PHONY: build clean deploy distclean
+.PHONY: build clean deploy distclean debug
