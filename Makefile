@@ -5,19 +5,21 @@ SHELL = /bin/sh
 _SITE_EXT_TARGET_DIR ?= docs/
 _SITE_EXT_GIT_DIR ?= .git/
 
-COMPILER = clang
+CC = clang
 
-SRC_DIR = src/
+SRCDIR = src/
 
 LIBGIT2_VERSION = v1.9.0
 LIBGIT2_DIR = deps/libgit2
 LIBGIT2_BUILD = $(LIBGIT2_DIR)/build
 LIBGIT2_LIB = $(LIBGIT2_BUILD)/libgit2.a
 
-# run on FreeBSD
-SYSTEM_LIBS = -L/usr/local/lib -lpthread -lz -lpcre -lssl -lcrypto
+SYSTEM_LIBS = -lpthread -lz -lpcre -lssl -lcrypto
 
-COMPILER_FLAGS = \
+LDLIBS = $(LIBGIT2_LIB) $(SYSTEM_LIBS) 
+LDFLAGS = -L/usr/local/lib
+
+CFLAGS = \
 -std=c99 \
 -Wall \
 -Wextra \
@@ -31,26 +33,24 @@ COMPILER_FLAGS = \
 -D_SITE_EXT_GIT_DIR=\"$(_SITE_EXT_GIT_DIR)\" \
 -I$(LIBGIT2_DIR)/include
 
-DEBUG_COMPILER_FLAGS = \
+DEBUG_CFLAGS = $(CFLAGS) \
 --debug \
 -fsanitize=address,undefined
-
-LINKER_FLAGS = $(LIBGIT2_LIB) $(SYSTEM_LIBS)
 
 # deploy
 deploy: clean build
 
 # debug build target
-debug: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
+debug: $(LIBGIT2_LIB) $(SRCDIR)/*.c
 	@printf "%s\n" "Building site generator (DEBUG)..."
-	@$(COMPILER) $(DEBUG_COMPILER_FLAGS) $(COMPILER_FLAGS) $(SRC_DIR)/*.c $(LINKER_FLAGS) -o build.out
+	@$(CC) $(LDFLAGS) $(DEBUG_CFLAGS) $(SRCDIR)/*.c -o build.out $(LDLIBS)
 	@printf "%s\n" "Generating pages (DEBUG)..."
 	@./build.out
 
-# build
-build: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
+#build
+build: $(LIBGIT2_LIB) $(SRCDIR)/*.c
 	@printf "%s\n" "Building site generator..."
-	@$(COMPILER) $(COMPILER_FLAGS) $(SRC_DIR)/*.c $(LINKER_FLAGS) -o build.out
+	@$(CC) $(LDFLAGS) $(CFLAGS) $(SRCDIR)/*.c -o build.out $(LDLIBS)
 	@printf "%s\n" "Generating pages..."
 	@./build.out
 
