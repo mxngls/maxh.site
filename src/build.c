@@ -325,7 +325,7 @@ int main(void) {
                 res = -1;
         }
 
-        if (create_feed(_SITE_EXT_TARGET_DIR "feed.xml", &header_arr) == 0) {
+        if (create_feed(_SITE_EXT_TARGET_DIR "feed.atom", &header_arr) == 0) {
                 res = -1;
         }
 

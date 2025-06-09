@@ -17,7 +17,7 @@
 	"        <nav>\n" \
 	"            <ul>\n" \
 	"                <li><a href=\"/\">Home</a></li>\n" \
-	"                <li><a href=\"/feed.xml\">feed</a></li>\n" \
+	"                <li><a href=\"/feed.atom\">feed</a></li>\n" \
 	"                <li id=\"index-title\"><b>maxh.site</b></li>\n" \
 	"            </ul>\n" \
 	"        </nav>\n" \
