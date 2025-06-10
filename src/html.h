@@ -5,6 +5,7 @@
 
 #define _SITE_STYLE_SHEET_PATH "style.css"
 #define _SITE_TITLE            "Max's Homepage"
+#define _SITE_LICENSE          "CC BY-NC-ND 4.0"
 
 // clang-format off
 #define _SITE_HTML_FONT \
@@ -22,7 +23,22 @@
 	"            </ul>\n" \
 	"        </nav>\n" \
 	"    </header>\n"
-// clang-format on
+
+#define _SITE_FOOTER \
+	"    <footer>\n" \
+	"        <ul>\n" \
+	"            <li>\n" \
+	"                <a\n" \
+	"                   href=\"https://creativecommons.org/licenses/by-nc-nd/4.0/\"\n" \
+	"                   title=\"Creative Commons License Attribution-NonCommercial-NoDerivatives 4.0 International\"\n" \
+	"                   target=\"_blank\"\n" \
+	"                   rel=\"noopener\">\n" \
+			    _SITE_LICENSE "\n" \
+	"                </a>\n" \
+	"            </li>\n" \
+	"        </ul>\n" \
+	"    </footer>\n"
+//clang-format on
 
 typedef struct {
         char *content;
