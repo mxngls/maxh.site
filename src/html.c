@@ -128,12 +128,8 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
         fprintf_ret = fprintf(dest_file, "%s", html_content);
 
         // close html
-        // clang-format off
-        fprintf_ret = fprintf(dest_file, "    </main>\n"
-					 _SITE_FOOTER
-                                         "</body>\n"
+        fprintf_ret = fprintf(dest_file, "</body>\n"
                                          "</html>\n");
-        // clang-format on
 
         if (fprintf_ret < 0) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
@@ -203,13 +199,10 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         fprintf_ret = fprintf(dest_file, "    </dl>\n"
                                          "</section>\n");
 
-        // close html
-        // clang-format off
+        // close <main>
         fprintf_ret = fprintf(dest_file, "    </main>\n"
-					 _SITE_FOOTER
                                          "</body>\n"
                                          "</html>\n");
-        // clang-format on
 
         if (fprintf_ret < 0) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
