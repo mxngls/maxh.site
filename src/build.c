@@ -129,16 +129,21 @@ page_header *process_page_file(FTSENT *ftsentp) {
                 goto error;
         }
 
+        // convert extension to proper .html
+        char page_name[256] = "\0";
+        snprintf(page_name, sizeof(page_name), "%s", ftsentp->fts_name);
+        strlcat(page_name, "l", sizeof(page_name));
+
         // output path
         char page_path[_SITE_PATH_MAX];
-        snprintf(page_path, sizeof(page_path), "%s/%s", _SITE_EXT_TARGET_DIR, ftsentp->fts_name);
+        snprintf(page_path, sizeof(page_path), "%s/%s", _SITE_EXT_TARGET_DIR, page_name);
 
         if ((header = calloc(1, sizeof(page_header))) == NULL) {
                 fprintf(stderr, "Memory allocation failed\n");
                 goto error;
         }
         char page_href[100] = "/";
-        strcat(page_href, ftsentp->fts_name);
+        strcat(page_href, page_name);
         strncpy(header->meta.path, page_href, _SITE_PATH_MAX - 1);
 
         if ((tracked = ghist_find_by_path(ftsentp->fts_path))) {
@@ -149,7 +154,7 @@ page_header *process_page_file(FTSENT *ftsentp) {
         // read content
         int header_len = -1;
         if ((header_len = page_parse_header(source_file, header)) == -1) {
-                fprintf(stderr, "Title and subtitle headers missing: %s\n", ftsentp->fts_name);
+                fprintf(stderr, "Title and subtitle headers missing: %s\n", page_name);
                 goto error;
         };
         size_t content_size = ftsentp->fts_statp->st_size - header_len;
@@ -287,7 +292,7 @@ int main(void) {
                 char *ext = dot + 1;
 
                 // non-html files
-                if (strcmp(ext, "html") != 0) {
+                if (strcmp(ext, "htm") != 0) {
                         char to_path[_SITE_PATH_MAX];
                         to_path[0] = '\0';
 
