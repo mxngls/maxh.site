@@ -83,18 +83,14 @@ int __copy_file(char *from, char *to) {
         return res;
 }
 
-int __create_output_dirs(void) {
+int __create_dir(char *dir_name) {
         mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 
-        if (mkdir(_SITE_EXT_TARGET_DIR, mode) != 0 && errno != EEXIST) {
+        if (mkdir(dir_name, mode) != 0 && errno != EEXIST) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
                 return -1;
         }
 
-        if (mkdir(_SITE_EXT_TARGET_DIR, mode) != 0 && errno != EEXIST) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
-                return -1;
-        }
         return 0;
 }
 
@@ -267,7 +263,7 @@ int main(void) {
             .len = 0,
         };
 
-        if (__create_output_dirs() != 0) {
+        if (__create_dir(_SITE_EXT_TARGET_DIR) != 0) {
                 res = -1;
                 return res;
         }

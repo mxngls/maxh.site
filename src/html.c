@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -44,7 +45,11 @@ static char *html_create_content(page_header *header, char *page_content) {
 
         size_t created_formatted_size = 256;
         char created_formatted[created_formatted_size];
-        ghist_format_ts("%d %b, %Y", created_formatted, header->meta.created);
+        if (header->meta.created) {
+                ghist_format_ts("%d %b, %Y", created_formatted, header->meta.created);
+        } else {
+                snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
+        }
 
         // add header group
         offset = snprintf(pos, buf_size - offset, hgroup_fmt, created_formatted, header->title,
@@ -101,9 +106,9 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "    <title>%s</title>\n"
             "</head>\n"
             "<body>\n"
-	         _SITE_HEADER
-            "    <main>\n"
-	    "        <article>\n",
+	    "<div id=\"content\">\n"
+            "<main>\n"
+	    "<article>\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, header->title);
 
@@ -128,7 +133,10 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
         fprintf_ret = fprintf(dest_file, "%s", html_content);
 
         // close html
-        fprintf_ret = fprintf(dest_file, "</body>\n"
+        fprintf_ret = fprintf(dest_file, "</article>\n"
+                                         "</main>\n"
+                                         "</div>\n"
+                                         "</body>\n"
                                          "</html>\n");
 
         if (fprintf_ret < 0) {
@@ -166,8 +174,8 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
             "    <title>%s</title>\n"
             "</head>\n"
             "<body>\n"
-	         _SITE_HEADER
-            "    <main>\n",
+	    "<div id=\"content\">\n"
+            "<main>\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, _SITE_TITLE);
 
@@ -183,26 +191,31 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         qsort(header_arr->elems, header_arr->len, sizeof(page_header *), qsort_cb);
 
         // add a list of posts to the index
-        fprintf_ret = fprintf(dest_file, "<section>\n"
-                                         "    <dl id=\"post-list\">\n");
+        fprintf_ret = fprintf(dest_file, "<section id=\"post-list\">\n"
+                                         "<h2>entries</h2>\n"
+                                         "<dl>\n");
 
         for (int i = 0; i < header_arr->len; i++) {
                 fprintf_ret = fprintf(dest_file,
-                                      "    <dt>\n"
-                                      "         <b><a href=\"%s\">%s</a></b>\n"
-                                      "    </dt>\n"
-                                      "    <dd>%s</dd>\n",
+                                      "<dt>\n"
+                                      "<b><a href=\"%s\">%s</a></b>\n"
+                                      "</dt>\n"
+                                      "<dd>%s</dd>\n",
                                       header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
                                       header_arr->elems[i]->subtitle);
         }
 
-        fprintf_ret = fprintf(dest_file, "    </dl>\n"
+        fprintf_ret = fprintf(dest_file, "</dl>\n"
                                          "</section>\n");
 
         // close <main>
-        fprintf_ret = fprintf(dest_file, "    </main>\n"
+        // clang-format off
+        fprintf_ret = fprintf(dest_file, "</main>\n"
+					 _SITE_FOOTER
+					 "</div>\n"
                                          "</body>\n"
                                          "</html>\n");
+        // clang-format on
 
         if (fprintf_ret < 0) {
                 fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
