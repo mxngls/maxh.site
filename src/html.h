@@ -12,17 +12,6 @@
 	"    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n" \
 	"    <link href=\"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap\" rel=\"stylesheet\">\n"
 
-// NOTE: currently not used
-// #define _SITE_HEADER \
-// 	"    <header>\n"\
-// 	"        <nav>\n" \
-// 	"            <ul>\n" \
-// 	"                <li><a href=\"/\">/</a></li>\n" \
-// 	"                <li id=\"index-title\"><b>maxh.site</b></li>\n" \
-// 	"            </ul>\n" \
-// 	"        </nav>\n" \
-// 	"    </header>\n"
-
 #define _SITE_FOOTER \
 	"    <footer>\n"\
 	"    <ul>\n"\
