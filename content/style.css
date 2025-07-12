@@ -56,7 +56,8 @@ blockquote>p:last-of-type {
 
 main {
 	flex: 1;
-
+	display: flex;
+	flex-flow: column;
 }
 
 footer {
@@ -89,11 +90,6 @@ section {
 	padding-bottom: 0.5rem;
 }
 
-hgroup {
-	margin-top: 1em;
-	margin-bottom: 2em;
-}
-
 hgroup>h1 {
 	margin-top: 0;
 	margin-bottom: 0;
@@ -103,6 +99,14 @@ hgroup>h1 {
 
 q {
 	font-style: italic;
+}
+
+article {
+	flex: 1;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
 }
 
 #content {
@@ -115,21 +119,8 @@ q {
 	padding: 2rem 1.5rem;
 }
 
-#index-title {
-	font-size: 26px;
-	margin-left: auto
-}
-
-#post-list {
-	margin-top: 1rem;
-}
-
-#post-list div {
-	margin-bottom: 0.3em;
-}
-
-#post-list dt {
-	font-weight: normal;
+#post-list h2 {
+	margin-top: 0.3em;
 }
 
 #post-list dd {
@@ -152,4 +143,13 @@ q {
 #date-created:hover {
 	opacity: inherit;
 	color: var(--color-gray5);
+}
+
+#date-updated {
+	margin-bottom: 0.67em;
+	line-height: normal;
+}
+
+#post-main {
+	flex: 1;
 }

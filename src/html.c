@@ -21,10 +21,9 @@ static int qsort_cb(const void *a, const void *b) {
 
 // package content
 static char *html_create_content(page_header *header, char *page_content) {
-        char p_modified_fmt[] =
-            "            <p>\n"
-            "                <small id=\"date-updated\">Last Updated on %s</small>\n"
-            "            </p>\n";
+        char p_modified_fmt[] = "            <p id=\"date-updated\">\n"
+                                "                <small>Last Updated on %s</small>\n"
+                                "            </p>\n";
 
         char hgroup_fmt[] =
             "            <hgroup>\n"
@@ -58,6 +57,10 @@ static char *html_create_content(page_header *header, char *page_content) {
                           header->subtitle);
         pos += offset;
 
+        // separate main content from header group and post footer
+        offset = snprintf(pos, buf_size - offset, "%s\n", "<div id=\"post-main\">");
+        pos += offset;
+
         // add content
         char *line = strtok(page_content, "\n");
         while (line) {
@@ -67,6 +70,10 @@ static char *html_create_content(page_header *header, char *page_content) {
                 }
                 line = strtok(NULL, "\n");
         }
+
+        // close main content
+        offset = snprintf(pos, buf_size - offset, "%s\n", "</div>");
+        pos += offset;
 
         // add modification date if present
         if (header->meta.modified) {
