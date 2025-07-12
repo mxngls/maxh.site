@@ -157,3 +157,15 @@ article {
 #post-main {
 	flex: 1;
 }
+
+@media (max-width: 768px) {
+	#content {
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+	}
+
+	#index-quote {
+		margin-bottom: 0;
+	}
+
+}
