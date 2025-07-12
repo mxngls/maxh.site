@@ -1,8 +1,7 @@
-#include <string.h>
-
 #include <errno.h>
 #include <fts.h>
 #include <ftw.h>
+#include <string.h>
 
 #include "feed.h"
 #include "ghist.h"
@@ -17,8 +16,15 @@
 #define _SITE_EXT_GIT_DIR ".git"
 #endif
 
-#define _SITE_INDEX_PATH "index.html"
+#define _SITE_INDEX_PATH "index.htm"
 #define _SITE_SOURCE_DIR "content/"
+
+#define _SITE_ABOUT_PATH "about.htm"
+
+#define _SITE_EXCEMPT_LIST _SITE_ABOUT_PATH
+
+const char *index_excempt_arr[] = {_SITE_EXCEMPT_LIST};
+#define _SITE_EXCEMPT_LIST_COUNT (sizeof(index_excempt_arr) / sizeof(index_excempt_arr[0]))
 
 page_content_arr content_arr = {
     .elems = {0},
@@ -240,7 +246,8 @@ int process_index_file(char *index_file_path, page_header_arr *header_arr) {
                 goto error;
         }
         page_content[bytes_read] = '\0';
-        res = html_create_index(page_content, page_path, header_arr);
+        res = html_create_index(page_content, page_path, header_arr, index_excempt_arr,
+                                _SITE_EXCEMPT_LIST_COUNT);
         goto cleanup;
 
 error:

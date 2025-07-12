@@ -22,21 +22,17 @@
 // 	"            </ul>\n" \
 // 	"        </nav>\n" \
 // 	"    </header>\n"
-//
+
 #define _SITE_FOOTER \
 	"    <footer>\n"\
 	"    <ul>\n"\
-	"        <li>\n"\
-	"            <a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
+	"	 <li>\n"\
+	"	     <a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">\n"\
+	"               e-mail\n"\
+	"	     </a>\n"\
 	"        </li>\n"\
 	"        <li>\n"\
-	"            <a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
-	"            <a href=\"https://github.com/mxngls\">github</a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
-	"            <a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">are.na</a>\n"\
+	"            <a href=\"about.html\">about</a>\n"\
 	"        </li>\n"\
 	"        <li>\n"\
 	"            <a href=\"feed.atom\">rss</a>\n"\
@@ -61,7 +57,7 @@ extern page_content_arr content_arr;
 
 // create html files
 int html_create_page(page_header *, char *, char *);
-int html_create_index(char *, char *, page_header_arr *);
+int html_create_index(char *, char *, page_header_arr *, const char *[], int);
 char *html_escape_content(char *);
 
 #endif // HTML_H

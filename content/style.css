@@ -76,13 +76,16 @@ nav>ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+
 	display: flex;
+	flex-wrap: wrap;
 	align-items: baseline;
+	gap: 10px;
 }
 
 footer>ul>li,
 nav>ul>li {
-	margin-right: 1rem;
+	white-space: nowrap;
 }
 
 section {
@@ -99,10 +102,6 @@ hgroup>h1 {
 	margin-bottom: 0;
 	font-size: 2rem;
 	line-height: 1.4;
-}
-
-hgroup p:first-of-type {
-	margin: 0;
 }
 
 q {
@@ -147,4 +146,13 @@ q {
 	color: var(--color-gray3);
 	opacity: 0.7;
 	font-weight: 600;
+}
+
+#date-created {
+	font-size: 95%;
+}
+
+#date-created:hover {
+	opacity: inherit;
+	color: var(--color-gray5);
 }

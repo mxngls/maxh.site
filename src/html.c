@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,13 +26,14 @@ static char *html_create_content(page_header *header, char *page_content) {
             "                <small id=\"date-updated\">Last Updated on %s</small>\n"
             "            </p>\n";
 
-        char hgroup_fmt[] = "            <hgroup>\n"
-                            "                <p>\n"
-                            "                    <small id=\"date-created\">%s</small>\n"
-                            "                </p>\n"
-                            "                <h1>%s</h1>\n"
-                            "                <p>%s</p>\n"
-                            "            </hgroup>\n";
+        char hgroup_fmt[] =
+            "            <hgroup>\n"
+            "                <p>\n"
+            "                    <span id=\"date-created\"><a href=\"/\">%s</a></span>\n"
+            "                </p>\n"
+            "                <h1>%s</h1>\n"
+            "                <p>%s</p>\n"
+            "            </hgroup>\n";
 
         size_t buf_size = 24 * 1024;
         char *buf = NULL;
@@ -151,7 +153,8 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 }
 
 // create html index file
-int html_create_index(char *page_content, char *output_path, page_header_arr *header_arr) {
+int html_create_index(char *page_content, char *output_path, page_header_arr *header_arr,
+                      const char *index_excempt_arr[], int index_excempt_arr_n) {
         // html destination
         FILE *dest_file = fopen(output_path, "w");
         if (dest_file == NULL) {
@@ -196,6 +199,14 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                                          "<dl>\n");
 
         for (int i = 0; i < header_arr->len; i++) {
+                bool skip = false;
+                for (int j = 0; j < index_excempt_arr_n; j++) {
+                        int path_len = (int)strlen(header_arr->elems[i]->meta.path);
+                        if (path_len > 1 && strncmp(header_arr->elems[i]->meta.path + 1,
+                                                    index_excempt_arr[j], path_len - 2) == 0)
+                                skip = true;
+                }
+                if (skip) continue;
                 fprintf_ret = fprintf(dest_file,
                                       "<dt>\n"
                                       "<b><a href=\"%s\">%s</a></b>\n"
