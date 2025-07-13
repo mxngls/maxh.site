@@ -120,7 +120,7 @@ article {
 	flex-direction: column;
 	justify-content: space-between;
 
-	padding: 2rem 1.5rem;
+	padding: 0.5rem 1.5rem;
 }
 
 #post-list h2 {
@@ -158,14 +158,21 @@ article {
 	flex: 1;
 }
 
-@media (max-width: 768px) {
+p#index-quote {
+	margin-bottom: 0;
+}
+
+
+@media (width >=40rem) {
+	body {
+		font-size: 18px;
+	}
+
 	#content {
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
+		padding: 2rem 1.5rem;
 	}
 
-	#index-quote {
-		margin-bottom: 0;
+	p#index-quote {
+		margin-bottom: 1em;
 	}
-
 }
