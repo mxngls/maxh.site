@@ -1,8 +1,10 @@
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <unistd.h>
 
+#include "error.h"
 #include "ghist.h"
 
 typedef struct {
@@ -204,7 +206,7 @@ int ghist_times(void) {
 error:
         res = -1;
         git_error *err = (git_error *)git_error_last();
-        fprintf(stderr, "Git error: %s\n", err ? err->message : "unknown error");
+        ERRORF(SITE_ERROR_GIT_OPERATION, err->message);
 
 cleanup:
         git_repository_free(repo);

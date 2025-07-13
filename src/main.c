@@ -3,6 +3,7 @@
 #include <ftw.h>
 #include <string.h>
 
+#include "error.h"
 #include "feed.h"
 #include "ghist.h"
 #include "html.h"
@@ -51,14 +52,12 @@ int __copy_file(char *from, char *to) {
         FILE *to_file = NULL;
 
         if ((from_file = fopen(from, "r")) == NULL) {
-                fprintf(stderr, "from_file: %s\n\t%s (errno: %d, line: %d)\n", from,
-                        strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_OPEN_READ, from);
                 return -1;
         }
 
         if ((to_file = fopen(to, "w")) == NULL) {
-                fprintf(stderr, "to_file: %s\n\t%s (errno: %d, line: %d)\n", to, strerror(errno),
-                        errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_OPEN_WRITE, to);
                 fclose(from_file);
                 return -1;
         }
@@ -70,15 +69,14 @@ int __copy_file(char *from, char *to) {
 
         while ((len = getline(&line, &bufsize, from_file)) > 0) {
                 if (fwrite(line, 1, (size_t)len, to_file) != (size_t)len) {
-                        fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno,
-                                __LINE__);
+                        ERRORF(SITE_ERROR_FILE_WRITE, from);
                         res = -1;
                         break;
                 }
         }
 
         if (len < 0 && !feof(from_file) && ferror(from_file)) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_UNEXPECTED_EOF, from);
                 res = -1;
         }
 
@@ -93,7 +91,7 @@ int __create_dir(char *dir_name) {
         mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 
         if (mkdir(dir_name, mode) != 0 && errno != EEXIST) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_DIRECTORY_CREATE, dir_name);
                 return -1;
         }
 
@@ -106,7 +104,7 @@ FTS *__init_fts(char *source) {
         int _fts_options = FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR;
 
         if ((ftsp = fts_open(paths, _fts_options, NULL)) == NULL) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
+                ERROR(SITE_ERROR_FTS_INIT);
                 return NULL;
         }
 
@@ -126,8 +124,7 @@ page_header *process_page_file(FTSENT *ftsentp) {
         char *page_content = NULL;
 
         if ((source_file = fopen(ftsentp->fts_path, "r")) == NULL) {
-                fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
-                        ftsentp->fts_path, strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_READ, ftsentp->fts_path);
                 goto error;
         }
 
@@ -141,7 +138,7 @@ page_header *process_page_file(FTSENT *ftsentp) {
         snprintf(page_path, sizeof(page_path), "%s/%s", _SITE_EXT_TARGET_DIR, page_name);
 
         if ((header = calloc(1, sizeof(page_header))) == NULL) {
-                fprintf(stderr, "Memory allocation failed\n");
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
                 goto error;
         }
         char page_href[100] = "/";
@@ -156,26 +153,23 @@ page_header *process_page_file(FTSENT *ftsentp) {
         // read content
         int header_len = -1;
         if ((header_len = page_parse_header(source_file, header)) == -1) {
-                fprintf(stderr, "Title and subtitle headers missing: %s\n", page_name);
+                ERRORF(SITE_ERROR_MISSING_HEADERS, page_name);
                 goto error;
         };
         size_t content_size = ftsentp->fts_statp->st_size - header_len;
         page_content = malloc(content_size + 1);
         if (page_content == NULL) {
-                fprintf(stderr, "Memory allocation failed for content\n");
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
                 goto error;
         }
         size_t bytes_read = fread(page_content, 1, content_size, source_file);
         if (bytes_read != content_size) {
                 if (feof(source_file)) {
-                        fprintf(stderr, "Page has no content. Aborting.\n");
+                        printf("Page has no content. Aborting.\n");
                 } else if (ferror(source_file)) {
-                        fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
-                                ftsentp->fts_path, strerror(errno), errno, __LINE__);
+                        ERRORF(SITE_ERROR_FILE_READ, ftsentp->fts_path);
                 } else {
-                        fprintf(
-                            stderr,
-                            "Reported Source file size length and number of bytes read differs.\n");
+                        ERRORF(SITE_ERROR_UNEXPECTED_EOF, ftsentp->fts_path);
                 }
                 goto error;
         }
@@ -207,14 +201,13 @@ int process_index_file(char *index_file_path, page_header_arr *header_arr) {
         char *page_content = NULL;
 
         if ((source_file = fopen(index_file_path, "r")) == NULL) {
-                fprintf(stderr, "Failed to open source %s: %s (errno: %d, line: %d)\n",
-                        index_file_path, strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_OPEN_READ, index_file_path);
                 goto error;
         }
 
         struct stat source_file_stat;
         if (stat(index_file_path, &source_file_stat) != 0) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_STAT, index_file_path);
                 goto error;
         }
 
@@ -226,22 +219,18 @@ int process_index_file(char *index_file_path, page_header_arr *header_arr) {
 
         size_t content_size = source_file_stat.st_size;
         if ((page_content = malloc(content_size + 1)) == NULL) {
-                fprintf(stderr, "Memory allocation failed for content\n");
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
                 goto error;
         }
 
         ssize_t bytes_read = fread(page_content, 1, source_file_stat.st_size, source_file);
         if (bytes_read != source_file_stat.st_size) {
                 if (feof(source_file)) {
-                        fprintf(stderr, "Unexpected EOF. Read %zu bytes, expected %jd\n",
-                                bytes_read, (intmax_t)source_file_stat.st_size);
+                        printf("Page has no content. Aborting.\n");
                 } else if (ferror(source_file)) {
-                        fprintf(stderr, "Failed to read from source %s: %s (errno: %d, line: %d)\n",
-                                index_file_path, strerror(errno), errno, __LINE__);
+                        ERRORF(SITE_ERROR_FILE_READ, index_file_path);
                 } else {
-                        fprintf(
-                            stderr,
-                            "Reported Source file size length and number of bytes read differs.\n");
+                        ERRORF(SITE_ERROR_UNEXPECTED_EOF, index_file_path);
                 }
                 goto error;
         }

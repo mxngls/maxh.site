@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "error.h"
 #include "ghist.h"
 #include "html.h"
 #include "page.h"
@@ -37,7 +38,7 @@ static char *html_create_content(page_header *header, char *page_content) {
         size_t buf_size = 24 * 1024;
         char *buf = NULL;
         if ((buf = malloc(buf_size)) == NULL) {
-                fprintf(stderr, "Failed to allocated content");
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION)
                 return NULL;
         }
 
@@ -92,7 +93,7 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
         // html destination
         FILE *dest_file = fopen(output_path, "w");
         if (dest_file == NULL) {
-                fprintf(stderr, "Failed to create %s: %s\n", output_path, strerror(errno));
+                ERRORF(SITE_ERROR_FILE_CREATE, output_path);
                 free(header);
                 return -1;
         }
@@ -149,7 +150,7 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
                                          "</html>\n");
 
         if (fprintf_ret < 0) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_WRITE, dest_file);
                 fclose(dest_file);
                 return -1;
         }
@@ -165,7 +166,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         // html destination
         FILE *dest_file = fopen(output_path, "w");
         if (dest_file == NULL) {
-                fprintf(stderr, "Failed to create %s: %s\n", output_path, strerror(errno));
+                ERRORF(SITE_ERROR_FILE_CREATE, output_path);
                 return -1;
         }
 
@@ -236,7 +237,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         // clang-format on
 
         if (fprintf_ret < 0) {
-                fprintf(stderr, "%s (errno: %d, line: %d)\n", strerror(errno), errno, __LINE__);
+                ERRORF(SITE_ERROR_FILE_WRITE, dest_file);
                 fclose(dest_file);
                 return -1;
         }

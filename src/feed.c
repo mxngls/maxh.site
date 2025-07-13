@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include "error.h"
 #include "feed.h"
 #include "ghist.h"
 #include "html.h"
@@ -11,7 +12,7 @@ int create_feed(char *output_path, page_header_arr *header_arr) {
 
         FILE *dest_file = NULL;
         if ((dest_file = fopen(output_path, "w")) == NULL) {
-                fprintf(stderr, "Failed to create: %s: %s\n", output_path, strerror(errno));
+                ERRORF(SITE_ERROR_FILE_CREATE, output_path)
                 return -1;
         }
 
