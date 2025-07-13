@@ -43,16 +43,16 @@ deploy: clean build
 # debug build target
 debug: $(LIBGIT2_LIB) $(SRCDIR)/*.c
 	@printf "%s\n" "Building site generator (DEBUG)..."
-	@$(CC) $(LDFLAGS) $(DEBUG_CFLAGS) $(SRCDIR)/*.c -o build.out $(LDLIBS)
+	@$(CC) $(LDFLAGS) $(DEBUG_CFLAGS) $(SRCDIR)/*.c -o main.out $(LDLIBS)
 	@printf "%s\n" "Generating pages (DEBUG)..."
-	@./build.out
+	@./main.out
 
 #build
 build: $(LIBGIT2_LIB) $(SRCDIR)/*.c
 	@printf "%s\n" "Building site generator..."
-	@$(CC) $(LDFLAGS) $(CFLAGS) $(SRCDIR)/*.c -o build.out $(LDLIBS)
+	@$(CC) $(LDFLAGS) $(CFLAGS) $(SRCDIR)/*.c -o main.out $(LDLIBS)
 	@printf "%s\n" "Generating pages..."
-	@./build.out
+	@./main.out
 
 # download and build libgit2
 $(LIBGIT2_LIB):
@@ -74,7 +74,7 @@ $(LIBGIT2_LIB):
 clean:
 	@printf "%s\n" "Removing build artifacts..."
 	@if [ -d "$(_SITE_EXT_TARGET_DIR)" ]; then find "$(_SITE_EXT_TARGET_DIR)" -mindepth 1 -delete; fi
-	@if [ -f "build.out" ]; then rm build.out; fi
+	@if [ -f "main.out" ]; then rm main.out; fi
 	@rm -f build.o
 
 # deep clean including dependencies
