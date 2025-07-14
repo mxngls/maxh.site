@@ -90,17 +90,6 @@ nav>ul>li {
 	white-space: nowrap;
 }
 
-ul,
-ol {
-	list-style-position: outside;
-	padding-left: 1.3em;
-}
-
-ul li,
-ol li {
-	margin-top: 1.4em;
-}
-
 section {
 	padding-bottom: 0.5rem;
 }
@@ -173,6 +162,14 @@ p#index-quote {
 	margin-bottom: 0;
 }
 
+.wide-list {
+	list-style-position: outside;
+	padding-left: 1.3em;
+}
+
+.wide-list li {
+	margin-top: 1.4em;
+}
 
 @media (width >=40rem) {
 	#content {
