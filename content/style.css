@@ -90,6 +90,17 @@ nav>ul>li {
 	white-space: nowrap;
 }
 
+ul,
+ol {
+	list-style-position: outside;
+	padding-left: 1.3em;
+}
+
+ul li,
+ol li {
+	margin-top: 1.4em;
+}
+
 section {
 	padding-bottom: 0.5rem;
 }
@@ -129,7 +140,7 @@ article {
 
 #post-list dd {
 	margin-top: 0.4em;
-	margin-bottom: 1em;
+	margin-bottom: 1.5em;
 	margin-left: 0;
 }
 
@@ -164,10 +175,6 @@ p#index-quote {
 
 
 @media (width >=40rem) {
-	body {
-		font-size: 18px;
-	}
-
 	#content {
 		padding: 2rem 1.5rem;
 	}
