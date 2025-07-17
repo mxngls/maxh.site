@@ -153,7 +153,7 @@ int ghist_times(void) {
 
         if (git_repository_open(&repo, _SITE_EXT_GIT_DIR) != 0) goto error;
         if (git_revwalk_new(&walker, repo)) goto error;
-        if (git_revwalk_sorting(walker, GIT_SORT_TIME)) goto error;
+        if (git_revwalk_sorting(walker, GIT_SORT_TIME | GIT_SORT_REVERSE)) goto error;
         if (git_revwalk_push_head(walker)) goto error;
 
         while (git_revwalk_next(&oid, walker) == 0) {
