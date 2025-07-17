@@ -18,7 +18,7 @@
 #endif
 
 #define _SITE_INDEX_PATH "index.htm"
-#define _SITE_SOURCE_DIR "content/"
+#define _SITE_SOURCE_DIR "content"
 
 #define _SITE_ABOUT_PATH "about.htm"
 
@@ -318,7 +318,7 @@ int main(void) {
                 }
         }
 
-        if (process_index_file(_SITE_SOURCE_DIR _SITE_INDEX_PATH, &header_arr) != 0) {
+        if (process_index_file(_SITE_SOURCE_DIR "/" _SITE_INDEX_PATH, &header_arr) != 0) {
                 res = -1;
         }
 
