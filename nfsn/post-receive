@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Previoysly the post-receive hook to rebuilt our website whenever a
+# commit gets was only stored on the remote server. We copy the file
+# here for further reference. Most of it is of course specific to
+# NearlyFreeSpeech.Net
+
+GIT_DIR="$HOME""maxh.git/"
+WORK_TREE="$HOME""maxh_checkout/"
+GIT_WORK_TREE="$WORK_TREE"
+PUBLIC_WWW="/home/public/"
+
+# export Git environment
+export GIT_DIR
+export GIT_WORK_TREE
+
+# checkout the latest code to working tree
+echo "Deploying to $WORK_TREE"
+git checkout -f main
+
+# build and deploy
+echo "Changing into $WORK_TREE"
+cd "$WORK_TREE" || exit 1
+
+export _SITE_EXT_TARGET_DIR="$PUBLIC_WWW"
+export _SITE_EXT_GIT_DIR="$GIT_DIR"
+
+make deploy
