@@ -1,9 +1,12 @@
 :root {
-	--color-gray1: #fcfbf9;
+	--color-gray1: #ffffff;
 	--color-gray2: #b1b1b0;
 	--color-gray3: #90908f;
 	--color-gray4: #646464;
-	--color-gray5: #2d2618;
+	--color-gray5: #5a5a5a;
+
+	--color-teal1: #cfb540;
+	--color-teal2: #9f8618;
 }
 
 html,
@@ -24,7 +27,8 @@ body {
 	background-color: var(--color-gray1);
 	color: var(--color-gray5);
 
-	font-family: "Source Sans 3", sans-serif;
+	/* font-family: "Source Sans 3", sans-serif; */
+	font-family: sans-serif;
 
 	font-optical-sizing: auto;
 	font-weight: 400;
@@ -37,14 +41,14 @@ a:visited {
 	text-decoration: underline;
 	text-decoration-thickness: 1.5px;
 	text-underline-offset: 6px;
-	text-decoration-color: var(--color-gray2);
-	color: inherit;
-	font-weight: 400;
+	text-decoration-color: var(--color-teal2);
+	color: var(--color-teal2);
 }
 
 a:hover,
 a:active {
-	text-decoration-color: var(--color-gray5);
+	text-decoration-color: var(--color-teal1);
+	color: var(--color-teal1);
 }
 
 
@@ -94,10 +98,14 @@ section {
 	padding-bottom: 0.5rem;
 }
 
-hgroup>h1 {
+h1 {
+	font-size: 2rem;
+
 	margin-top: 0;
 	margin-bottom: 0;
-	font-size: 2rem;
+}
+
+hgroup>h1 {
 	line-height: 1.4;
 }
 
@@ -123,14 +131,25 @@ article {
 	padding: 0.5rem 1.5rem;
 }
 
-#post-list h2 {
-	margin-top: 0.3em;
+#post-list h3 {
+	margin-bottom: 0;
+}
+
+#post-list {
+	margin-top: 0;
 }
 
 #post-list dd {
 	margin-top: 0.4em;
 	margin-bottom: 1.5em;
-	margin-left: 0;
+}
+
+#post-list strong {
+	color: var(--color-teal2);
+}
+
+#post-list strong:hover {
+	color: var(--color-teal1);
 }
 
 #date-created,
@@ -144,13 +163,13 @@ article {
 	font-size: 95%;
 }
 
-#date-created:hover {
+#date-created:not(.no-hover):hover {
 	opacity: inherit;
 	color: var(--color-gray5);
 }
 
 #date-updated {
-	margin-bottom: 0.67em;
+	margin-bottom: 1em;
 	line-height: normal;
 }
 
@@ -160,6 +179,7 @@ article {
 
 p#index-quote {
 	margin-bottom: 0;
+	font-size: 110%;
 }
 
 .wide-list {
