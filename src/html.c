@@ -114,13 +114,14 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "	 <link href=\"/feed.atom\" type=\"application/atom+xml\" rel=\"alternate\">\n"
             "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT "\n"
             "    <title>%s</title>\n"
+	    "    %s\n"
             "</head>\n"
             "<body>\n"
 	    "<div id=\"content\">\n"
             "<main>\n"
 	    "<article>\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, header->title);
+            _SITE_STYLE_SHEET_PATH, header->title, _SITE_FOOTNOTE_WEBCOMPONENT);
 
         // write content
         char *html_content = NULL;
@@ -183,12 +184,13 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
             "    <link href=\"/feed.atom\" type=\"application/atom+xml\" rel=\"alternate\">\n"
             "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT "\n"
             "    <title>%s</title>\n"
+	    "	 %s\n"
             "</head>\n"
             "<body>\n"
 	    "<div id=\"content\">\n"
             "<main>\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, _SITE_TITLE);
+            _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_FOOTNOTE_WEBCOMPONENT);
 
         // content
         char *dest_line = strtok((char *)page_content, "\n");
