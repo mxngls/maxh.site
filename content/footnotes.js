@@ -3,7 +3,6 @@ class FootnoteRef extends HTMLElement {
 
 	constructor() {
 		super();
-
 		FootnoteRef.footnoteCounter++;
 		this.footnoteNumber = FootnoteRef.footnoteCounter;
 	}
@@ -24,9 +23,7 @@ class FootnoteRef extends HTMLElement {
 	}
 
 	processContent() {
-		const footnoteContainer = document.getElementById("footnotes");
 		const contentContainer = document.getElementById("post-main");
-
 		if (!contentContainer) {
 			console.error(
 				"FootnoteRef: Content container to append footnotes to not found",
@@ -34,19 +31,21 @@ class FootnoteRef extends HTMLElement {
 			return;
 		}
 
+		const footnoteContainer = document.getElementById("footnotes");
 		if (!footnoteContainer || !this.footnoteContainer) {
 			this.footnoteContainer = this.initContainer(
 				contentContainer,
 				footnoteContainer,
 			);
 		}
-
 		const content = this.innerHTML.trim();
+
 		if (!content) {
 			console.warn("FootnoteRef: Empty footnote content, skipping");
 			this.remove();
 			return;
 		}
+
 		this.addFootnote(content);
 		this.addSelf();
 	}
@@ -62,6 +61,7 @@ class FootnoteRef extends HTMLElement {
 		const sup = document.createElement("sup");
 
 		sup.appendChild(a);
+
 		this.replaceWith(sup);
 	}
 
@@ -72,7 +72,6 @@ class FootnoteRef extends HTMLElement {
 
 		p.id = `footnote-${this.footnoteNumber}`;
 		p.innerHTML = content;
-
 		a.href = `#footnote-ref-${this.footnoteNumber}`;
 		a.innerText = "↩";
 
@@ -84,7 +83,11 @@ class FootnoteRef extends HTMLElement {
 			console.error("FootnoteRef: Footnote list not found");
 			return;
 		}
+
 		ol.appendChild(li);
+
+		const contentContainer = document.getElementById("post-main");
+		contentContainer.appendChild(this.footnoteContainer);
 	}
 
 	initContainer(contentContainer, footnoteContainer) {
@@ -92,12 +95,9 @@ class FootnoteRef extends HTMLElement {
 			footnoteContainer = document.createElement("div");
 			footnoteContainer.id = "footnotes";
 			footnoteContainer.appendChild(document.createElement("ol"));
-
 			contentContainer.appendChild(footnoteContainer);
 		}
-
 		return footnoteContainer;
 	}
 }
-
 customElements.define("footnote-ref", FootnoteRef);

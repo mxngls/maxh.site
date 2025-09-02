@@ -1,0 +1,294 @@
+title: [DRAFT] Renaming a Git Stash
+subtitle: Or, what's a stash anyway?
+
+<h3>Stashing and Context</h3>
+
+<p>
+	Even though multiple work trees seem to be all the rage these days, I still work with plain old Git stashes.
+	Most of the time I push the work to the stash if some other urgent task comes up that demands my immediate
+	attention. Other times I save my work before rebasing the current branch on a different branch and want to apply
+	the changes I am about to introduce after that in a safe manner.
+</p>
+
+<p>
+	The default stash message as recorded by Git looks
+	something like this:
+</p>
+
+<pre><code>WIP on main: 66ca91c Add navbar</code></pre>
+
+<p>
+	The record contains the following information: <strong>(1)</strong> the branch the commit belongs to,
+	<strong>(2)</strong> the hash of said commit, as well as <strong>(3)</strong> its commit message. The missing
+	piece here is some context about the contents of the actual stash that we created. The message itself tells us
+	approximately when we did some work, but not what kind. We have some things at our disposal to help us out here.
+	There is the <code>-m | --message</code> flag which allows us to provide an alternative message. Then there is
+	one of Git's less loved features: Git notes. Let's for now pretend we don't need something as fully fledged as
+	Git notes, but instead prefer to stick with Git's plain stash messages. What if we created a stash using either
+	the not so informative default message described above or one that we came up with ourselves, but would like to
+	change the message at a later point in time? The naive but obvious-seeming answer here would be simply to
+	recreate the stash providing a different commit message. While this might work if we realize our mistake right
+	away, we might as well just do that. But what if we are in the midst of some nasty rebase or weeding out some
+	conflicts that appeared while merging a different branch? Simply popping the stash could just leave us with more
+	conflicts and is thus not a viable option. Understanding what exactly a Git stash is helps us find a way to
+	safely rename a stash—a feature miraculously still missing.
+</p>
+
+<h4>But what exactly is a stash?</h4>
+
+<p>
+	Without diving into a full explanation of how Git in its entirety works, in order to understand what exactly a
+	stash
+	is, it's necessary to at least grasp what might be the most extensively used data structure internally: a
+	Git tree. Quoting from from the <i>gitrevisions</i> man page,
+	<q cite='https://git-scm.com/book/be/v2/Git-Internals-Git-Objects'>
+		[...] which denote other objects than
+		commits, e.g. blobs ("files") or trees ("directories of files")
+	</q>.
+	With that out of the way, let's direct our attention to the question that we posed before.
+	While the man page for the stash commands serves as a great first clue, it's usually best to inspect the source
+	code to gain a full understanding of how things are actually working under the hood. Similar to the rebase
+	command, the stash command evolved from a simple Bash script that was introduced with commit
+	<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=f2c66ed196d1d1410d014e4ee3e2b585936101f5'>
+		<code>f2c66ed196</code>
+	</a>.
+	<footnote-ref>
+		Quite suprisingly though the stash functionality was contained to said shell script for almost 15 years
+		until commit
+		<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=e36adf712251a19bd2ada0016764d340dfcf2ba0'>
+			<code>e36adf7122 </code>
+		</a>
+		when it got replaced by a new file written in C was. The script was
+		kept for backwards compatibility for another year until finally being removed entirely in commit
+		<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>
+			<code>8a2cd3f512</code>
+		</a>.
+	</footnote-ref>
+</p>
+
+<p>
+	Skipping fast forward to today, we find a file called <code>stash.c</code> in <code>builtin</code>.
+	<footnote-ref>
+		Comparing the two implementations it's astounishing to see how - quite unsurprinsingly - the complexity
+		of the underlyin logic has grown over the years manifold and how refreshingly readable the original
+		script mentioned in the first footnote was.
+	</footnote-ref>
+	After peeking around the function that should be of immediate interest can be found with the revealing name
+	<code>do_create_stash</code> which can be found inside <code>create_stash</code> and <code>do_push_stash</code>. For
+	anyone that has used stashes before these names should sound quite familiar as they are almost the same as their
+	user facing command line counterparts.
+</p>
+
+<details>
+	<summary>
+		Ignoring all the other tidbits let's inspect the <code>do_create_stash</code> function a bit more closely.
+	</summary>
+	<pre>
+		<code>
+static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_buf,
+			   int include_untracked, int patch_mode, struct add_p_opt *add_p_opt,
+			   int only_staged, struct stash_info *info, struct strbuf *patch,
+			   int quiet)
+{
+	inrtt ret = 0;
+	int flags = 0;
+	int untracked_commit_option = 0;
+	const char *head_short_sha1 = NULL;
+	const char *branch_ref = NULL;
+	const char *branch_name = "(no branch)";
+	char *branch_name_buf = NULL;
+	struct commit *head_commit = NULL;
+	struct commit_list *parents = NULL;
+	struct strbuf msg = STRBUF_INIT;
+	struct strbuf commit_tree_label = STRBUF_INIT;
+	struct strbuf untracked_files = STRBUF_INIT;
+
+	prepare_fallback_ident("git stash", "git@stash");
+
+	repo_read_index_preload(the_repository, NULL, 0);
+	if (repo_refresh_and_write_index(the_repository, REFRESH_QUIET, 0, 0,
+					 NULL, NULL, NULL) < 0) {
+		ret = error(_("could not write index"));
+		goto done;
+	}
+
+	if (repo_get_oid(the_repository, "HEAD", &info->b_commit)) {
+		if (!quiet)
+			fprintf_ln(stderr, _("You do not have "
+					     "the initial commit yet"));
+		ret = -1;
+		goto done;
+	} else {
+		head_commit = lookup_commit(the_repository, &info->b_commit);
+	}
+
+	if (!check_changes(ps, include_untracked, &untracked_files)) {
+		ret = 1;
+		goto done;
+	}
+
+	branch_ref = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
+					     "HEAD", 0, NULL, &flags);
+
+	if (flags & REF_ISSYMREF) {
+		if (skip_prefix(branch_ref, "refs/heads/", &branch_name))
+			branch_name = branch_name_buf = xstrdup(branch_name);
+	}
+
+	head_short_sha1 = repo_find_unique_abbrev(the_repository,
+						  &head_commit->object.oid,
+						  DEFAULT_ABBREV);
+	strbuf_addf(&msg, "%s: %s ", branch_name, head_short_sha1);
+	pp_commit_easy(CMIT_FMT_ONELINE, head_commit, &msg);
+
+	strbuf_addf(&commit_tree_label, "index on %s\n", msg.buf);
+	commit_list_insert(head_commit, &parents);
+	if (write_index_as_tree(&info->i_tree, the_repository->index,
+				repo_get_index_file(the_repository), 0, NULL) ||
+	    commit_tree(commit_tree_label.buf, commit_tree_label.len,
+			&info->i_tree, parents, &info->i_commit, NULL, NULL)) {
+		if (!quiet)
+			fprintf_ln(stderr, _("Cannot save the current "
+					     "index state"));
+		ret = -1;
+		goto done;
+	}
+
+	free_commit_list(parents);
+	parents = NULL;
+
+	if (include_untracked) {
+		if (save_untracked_files(info, &msg, untracked_files)) {
+			if (!quiet)
+				fprintf_ln(stderr, _("Cannot save "
+						     "the untracked files"));
+			ret = -1;
+			goto done;
+		}
+		untracked_commit_option = 1;
+	}
+	if (patch_mode) {
+		ret = stash_patch(info, ps, patch, quiet, add_p_opt);
+		if (ret < 0) {
+			if (!quiet)
+				fprintf_ln(stderr, _("Cannot save the current "
+						     "worktree state"));
+			goto done;
+		} else if (ret > 0) {
+			goto done;
+		}
+	} else if (only_staged) {
+		ret = stash_staged(info, patch, quiet);
+		if (ret < 0) {
+			if (!quiet)
+				fprintf_ln(stderr, _("Cannot save the current "
+						     "staged state"));
+			goto done;
+		} else if (ret > 0) {
+			goto done;
+		}
+	} else if (stash_working_tree(info, ps)) {
+		if (!quiet)
+			fprintf_ln(stderr, _("Cannot save the current "
+					     "worktree state"));
+		ret = -1;
+		goto done;
+	}
+
+	if (!stash_msg_buf->len)
+		strbuf_addf(stash_msg_buf, "WIP on %s", msg.buf);
+	else
+		strbuf_insertf(stash_msg_buf, 0, "On %s: ", branch_name);
+
+	if (untracked_commit_option)
+		commit_list_insert(lookup_commit(the_repository,
+						 &info->u_commit),
+				   &parents);
+	commit_list_insert(lookup_commit(the_repository, &info->i_commit),
+			   &parents);
+	commit_list_insert(head_commit, &parents);
+
+	if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
+			parents, &info->w_commit, NULL, NULL)) {
+		if (!quiet)
+			fprintf_ln(stderr, _("Cannot record "
+						 "working tree state"));
+		ret = -1;
+		goto done;
+	}
+
+done:
+	strbuf_release(&commit_tree_label);
+	strbuf_release(&msg);
+	strbuf_release(&untracked_files);
+	free_commit_list(parents);
+	free(branch_name_buf);
+	return ret;
+}
+		</code>
+	</pre>
+</details>
+
+<p>
+	First, in order to create a stash we need to have at least one base commit from which
+	we are currently operating off. So running `git init` doing some work and then trying to stash doesn't work;
+	<code>repo_get_oid</code> is used to verify that a base commit exists. After obtaining the base commit we
+	proceed
+	and check the next prerequesite that we need to fulfill in order to being able to stash; that we indeed
+	need to have some actual changes yet (see <code>check_changes</code>). After preparing a commit and
+	incorporaiting a
+	possibly provided stash message the actual stash creation happens inside the following conditional:
+</p>
+
+<pre>
+	<code>
+if (write_index_as_tree(&info->i_tree, the_repository->index,
+			repo_get_index_file(the_repository), 0, NULL) ||
+    commit_tree(commit_tree_label.buf, commit_tree_label.len,
+		&info->i_tree, parents, &info->i_commit, NULL, NULL)) {
+	if (!quiet)
+		fprintf_ln(stderr, _("Cannot save the current "
+				     "index state"));
+	ret = -1;
+	goto done;
+}
+
+	</code>
+</pre>
+
+<p>
+	Not quite as readable as the original version the underlying logic still remains the same.
+	<code>write_index_as_tree</code> creates a tree object from the current changes contained in the index.
+	Then a bit further down
+</p>
+
+<pre>
+	<code>
+} else if (stash_working_tree(info, ps)) {
+	if (!quiet)
+		fprintf_ln(stderr, _("cannot save the current "
+				     "worktree state"));
+	ret = -1;
+	goto done;
+}
+	</code>
+</pre>
+
+<p>saves the changes still contained in
+	the working tree. And lastly another call to <code>commit_tree</code> creates the actual commit object that we
+	work
+	with when we run commands like <code>git show stash</code>:
+</p>
+
+<pre>
+	<code>
+if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
+		parents, &info->w_commit, NULL, NULL)) {
+	if (!quiet)
+		fprintf_ln(stderr, _("Cannot record "
+					 "working tree state"));
+	ret = -1;
+	goto done;
+}
+	</code>
+</pre>

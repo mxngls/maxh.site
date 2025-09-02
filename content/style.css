@@ -19,7 +19,7 @@ body {
 	flex-direction: column;
 	justify-content: space-between;
 
-	max-width: 700px;
+	max-width: 720px;
 	margin: 0 auto;
 	padding: 0;
 	line-height: 1.8;
@@ -75,6 +75,7 @@ footer {
 
 pre {
 	overflow-x: auto;
+ 	scrollbar-width: none;
 }
 
 footer>ul,
@@ -201,7 +202,6 @@ p#index-quote {
 
 .footnote-ref {
 	text-decoration: none;
-	font-size: 0.9em;
 }
 
 .wide-list {
@@ -221,4 +221,9 @@ p#index-quote {
 	p#index-quote {
 		margin-bottom: 1em;
 	}
+
+	pre {
+		overflow-x: visible;
+	}
+
 }
