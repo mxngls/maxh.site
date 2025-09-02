@@ -30,6 +30,8 @@
 	"    </footer>\n"
 // clang-format on
 
+#define _SITE_FOOTNOTE_WEBCOMPONENT "<script src=\"footnotes.js\"></script>"
+
 typedef struct {
         char *content;
         struct {
