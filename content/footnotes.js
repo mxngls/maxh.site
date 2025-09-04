@@ -1,10 +1,10 @@
-class FootnoteRef extends HTMLElement {
+class Footnote extends HTMLElement {
 	static footnoteCounter = 0;
 
 	constructor() {
 		super();
-		FootnoteRef.footnoteCounter++;
-		this.footnoteNumber = FootnoteRef.footnoteCounter;
+		Footnote.footnoteCounter++;
+		this.footnoteNumber = Footnote.footnoteCounter;
 	}
 
 	connectedCallback() {
@@ -47,10 +47,10 @@ class FootnoteRef extends HTMLElement {
 		}
 
 		this.addFootnote(content);
-		this.addSelf();
+		this.addFootnoteRef();
 	}
 
-	addSelf() {
+	addFootnoteRef() {
 		const a = document.createElement("a");
 
 		a.classList.add("footnote-ref");
@@ -67,16 +67,14 @@ class FootnoteRef extends HTMLElement {
 
 	addFootnote(content) {
 		const li = document.createElement("li");
-		const p = document.createElement("p");
 		const a = document.createElement("a");
 
-		p.id = `footnote-${this.footnoteNumber}`;
-		p.innerHTML = content;
+		li.id = `footnote-${this.footnoteNumber}`;
+		li.innerHTML = content;
 		a.href = `#footnote-ref-${this.footnoteNumber}`;
 		a.innerText = "↩";
 
-		p.appendChild(a);
-		li.appendChild(p);
+		li.appendChild(a);
 
 		const ol = this.footnoteContainer.getElementsByTagName("ol").item(0);
 		if (!ol) {
@@ -100,4 +98,5 @@ class FootnoteRef extends HTMLElement {
 		return footnoteContainer;
 	}
 }
-customElements.define("footnote-ref", FootnoteRef);
+
+customElements.define("x-footnote", Footnote);

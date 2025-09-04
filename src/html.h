@@ -21,9 +21,6 @@
 	"	     </a>\n"\
 	"        </li>\n"\
 	"        <li>\n"\
-	"            <a href=\"about.html\">about</a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
 	"            <a href=\"feed.atom\">rss</a>\n"\
 	"        </li>\n"\
 	"    </ul>\n"\
