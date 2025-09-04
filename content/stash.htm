@@ -1,13 +1,11 @@
-title: [DRAFT] Renaming a Git Stash
+title: Renaming a Git Stash
 subtitle: Or, what's a stash anyway?
-
-<h3>Stashing and Context</h3>
 
 <p>
 	Even though multiple work trees seem to be all the rage these days, I still work with plain old Git stashes.
-	Most of the time I push the work to the stash if some other urgent task comes up that demands my immediate
-	attention. Other times I save my work before rebasing the current branch on a different branch and want to apply
-	the changes I am about to introduce after that in a safe manner.
+	Most of the time I push work to the stash when some other urgent task comes up that demands my immediate
+	attention. Other times I save my work before rebasing the current branch onto a different branch and want to apply
+	the changes I'm about to introduce afterward in a safe manner.
 </p>
 
 <p>
@@ -15,82 +13,99 @@ subtitle: Or, what's a stash anyway?
 	something like this:
 </p>
 
-<pre><code>WIP on main: 66ca91c Add navbar</code></pre>
+<p>
+<pre>
+<code>WIP on main: 66ca91c Add navbar</code>
+</pre>
+</p>
 
 <p>
 	The record contains the following information: <strong>(1)</strong> the branch the commit belongs to,
 	<strong>(2)</strong> the hash of said commit, as well as <strong>(3)</strong> its commit message. The missing
 	piece here is some context about the contents of the actual stash that we created. The message itself tells us
-	approximately when we did some work, but not what kind. We have some things at our disposal to help us out here.
-	There is the <code>-m | --message</code> flag which allows us to provide an alternative message. Then there is
+	approximately when we did some work, but not what kind. We have a few things at our disposal to help us out here.
+	There's the <code>-m | --message</code> flag which allows us to provide an alternative message. Then there's
 	one of Git's less loved features: Git notes. Let's for now pretend we don't need something as fully fledged as
 	Git notes, but instead prefer to stick with Git's plain stash messages. What if we created a stash using either
-	the not so informative default message described above or one that we came up with ourselves, but would like to
+	the not-so-informative default message described above or one that we came up with ourselves, but would like to
 	change the message at a later point in time? The naive but obvious-seeming answer here would be simply to
-	recreate the stash providing a different commit message. While this might work if we realize our mistake right
-	away, we might as well just do that. But what if we are in the midst of some nasty rebase or weeding out some
+	recreate the stash, providing a different commit message. While this might work if we realize our mistake right
+	away, we might as well just do that. But what if we're in the midst of some nasty rebase or weeding out some
 	conflicts that appeared while merging a different branch? Simply popping the stash could just leave us with more
 	conflicts and is thus not a viable option. Understanding what exactly a Git stash is helps us find a way to
-	safely rename a stash—a feature miraculously still missing.
+	safely rename a stash—a feature that is miraculously still missing.
 </p>
 
-<h4>But what exactly is a stash?</h4>
+<h3>But what exactly is a stash?</h3>
 
 <p>
 	Without diving into a full explanation of how Git in its entirety works, in order to understand what exactly a
-	stash
-	is, it's necessary to at least grasp what might be the most extensively used data structure internally: a
-	Git tree. Quoting from from the <i>gitrevisions</i> man page,
-	<q cite='https://git-scm.com/book/be/v2/Git-Internals-Git-Objects'>
-		[...] which denote other objects than
-		commits, e.g. blobs ("files") or trees ("directories of files")
-	</q>.
-	With that out of the way, let's direct our attention to the question that we posed before.
-	While the man page for the stash commands serves as a great first clue, it's usually best to inspect the source
-	code to gain a full understanding of how things are actually working under the hood. Similar to the rebase
-	command, the stash command evolved from a simple Bash script that was introduced with commit
-	<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=f2c66ed196d1d1410d014e4ee3e2b585936101f5'>
-		<code>f2c66ed196</code>
-	</a>.
-	<footnote-ref>
-		Quite suprisingly though the stash functionality was contained to said shell script for almost 15 years
-		until commit
-		<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=e36adf712251a19bd2ada0016764d340dfcf2ba0'>
-			<code>e36adf7122 </code>
+	stash is, it's necessary to at least grasp what might be the most extensively used data structure internally: a
+	Git tree (object).
+	<x-footnote>
+		From now on referred to as <i>tree</i>.
+	</x-footnote>
+	Quoting from the <i>gitglossary</i> man page,
+	<q cite='https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html#def_tree_object'>
+		An object containing a list of file names and modes along with refs to the associated blob and/or tree objects.
+		A tree is equivalent to a directory.
+	</q>
+	<x-footnote>
+		Interestingly, besides the plain term <i>tree</i>, another one often encountered and used throughout the man
+		pages of various Git commands is the notion of a <i>tree-ish</i> object. The Git kernel
+		<a href='https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html'>
+			documentation
+		</a> defines this basically as anything that can be dereferenced to a Git object. And indeed, looking at
+		<code>disambiguate_treeish_only</code> shows exactly that.
+	</x-footnote>
+	While the man page for the stash command serves as a great first clue, it's usually best to inspect the source code
+	to gain a full understanding of how things actually work under the hood. Similar to the rebase command, the
+	stash command evolved from a simple Bash script that was introduced with commit
+	<code>
+		<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=f2c66ed196d1d1410d014e4ee3e2b585936101f5'>
+			f2c66ed196
 		</a>
-		when it got replaced by a new file written in C was. The script was
+	</code>.
+	<x-footnote>
+		Quite surprisingly though, the stash functionality was contained in said shell script for almost 15 years
+		until commit
+		<code>
+			<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=e36adf712251a19bd2ada0016764d340dfcf2ba0'>
+				e36adf7122
+			</a>
+		</code>
+		when it was replaced by a new file written in C. The script was
 		kept for backwards compatibility for another year until finally being removed entirely in commit
-		<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>
-			<code>8a2cd3f512</code>
-		</a>.
-	</footnote-ref>
+
+		<code>
+			<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>8a2cd3f512
+			</a>
+		</code>.
+	</x-footnote>
 </p>
 
 <p>
-	Skipping fast forward to today, we find a file called <code>stash.c</code> in <code>builtin</code>.
-	<footnote-ref>
-		Comparing the two implementations it's astounishing to see how - quite unsurprinsingly - the complexity
-		of the underlyin logic has grown over the years manifold and how refreshingly readable the original
-		script mentioned in the first footnote was.
-	</footnote-ref>
-	After peeking around the function that should be of immediate interest can be found with the revealing name
-	<code>do_create_stash</code> which can be found inside <code>create_stash</code> and <code>do_push_stash</code>. For
-	anyone that has used stashes before these names should sound quite familiar as they are almost the same as their
-	user facing command line counterparts.
+	Skipping fast-forward to today, we find a file called <code>stash.c</code> in <code>builtin</code>. After looking
+	around, the function that should be of immediate interest can be found with the revealing name
+	<code>do_create_stash</code>, which can be found inside <code>create_stash</code> and <code>do_push_stash</code>.
+	For anyone who has used stashes before, these names should sound quite familiar as they're almost the same as their
+	user-facing command line counterparts.
 </p>
 
 <details>
 	<summary>
-		Ignoring all the other tidbits let's inspect the <code>do_create_stash</code> function a bit more closely.
+		<span>
+			Ignoring all the other details, let's inspect the <code>do_create_stash</code> function a bit more
+			closely.
+		</span>
 	</summary>
 	<pre>
-		<code>
-static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_buf,
+<code>static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_buf,
 			   int include_untracked, int patch_mode, struct add_p_opt *add_p_opt,
 			   int only_staged, struct stash_info *info, struct strbuf *patch,
 			   int quiet)
 {
-	inrtt ret = 0;
+	int ret = 0;
 	int flags = 0;
 	int untracked_commit_option = 0;
 	const char *head_short_sha1 = NULL;
@@ -143,7 +158,7 @@ static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_b
 
 	strbuf_addf(&commit_tree_label, "index on %s\n", msg.buf);
 	commit_list_insert(head_commit, &parents);
-	if (write_index_as_tree(&info->i_tree, the_repository->index,
+	<span class="highlight">if (write_index_as_tree(&info->i_tree, the_repository->index,
 				repo_get_index_file(the_repository), 0, NULL) ||
 	    commit_tree(commit_tree_label.buf, commit_tree_label.len,
 			&info->i_tree, parents, &info->i_commit, NULL, NULL)) {
@@ -152,7 +167,7 @@ static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_b
 					     "index state"));
 		ret = -1;
 		goto done;
-	}
+	}</span>
 
 	free_commit_list(parents);
 	parents = NULL;
@@ -187,13 +202,13 @@ static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_b
 		} else if (ret > 0) {
 			goto done;
 		}
-	} else if (stash_working_tree(info, ps)) {
+	<span class="highlight">} else if (stash_working_tree(info, ps)) {
 		if (!quiet)
 			fprintf_ln(stderr, _("Cannot save the current "
 					     "worktree state"));
 		ret = -1;
 		goto done;
-	}
+	}</span>
 
 	if (!stash_msg_buf->len)
 		strbuf_addf(stash_msg_buf, "WIP on %s", msg.buf);
@@ -208,14 +223,14 @@ static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_b
 			   &parents);
 	commit_list_insert(head_commit, &parents);
 
-	if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
+	<span class="highlight">if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
 			parents, &info->w_commit, NULL, NULL)) {
 		if (!quiet)
 			fprintf_ln(stderr, _("Cannot record "
 						 "working tree state"));
 		ret = -1;
 		goto done;
-	}
+	}</span>
 
 done:
 	strbuf_release(&commit_tree_label);
@@ -224,25 +239,17 @@ done:
 	free_commit_list(parents);
 	free(branch_name_buf);
 	return ret;
-}
-		</code>
+}</code>
 	</pre>
 </details>
 
 <p>
-	First, in order to create a stash we need to have at least one base commit from which
-	we are currently operating off. So running `git init` doing some work and then trying to stash doesn't work;
-	<code>repo_get_oid</code> is used to verify that a base commit exists. After obtaining the base commit we
-	proceed
-	and check the next prerequesite that we need to fulfill in order to being able to stash; that we indeed
-	need to have some actual changes yet (see <code>check_changes</code>). After preparing a commit and
-	incorporaiting a
-	possibly provided stash message the actual stash creation happens inside the following conditional:
+	I've highlighted the three most important parts of the function above. The first thing happening is the creation of
+	the current index state as a Git tree and the subsequent commit of said tree:
 </p>
 
 <pre>
-	<code>
-if (write_index_as_tree(&info->i_tree, the_repository->index,
+<code>if (write_index_as_tree(&info->i_tree, the_repository->index,
 			repo_get_index_file(the_repository), 0, NULL) ||
     commit_tree(commit_tree_label.buf, commit_tree_label.len,
 		&info->i_tree, parents, &info->i_commit, NULL, NULL)) {
@@ -251,44 +258,116 @@ if (write_index_as_tree(&info->i_tree, the_repository->index,
 				     "index state"));
 	ret = -1;
 	goto done;
-}
-
-	</code>
+}</code>
 </pre>
 
 <p>
-	Not quite as readable as the original version the underlying logic still remains the same.
-	<code>write_index_as_tree</code> creates a tree object from the current changes contained in the index.
-	Then a bit further down
+	Not quite as readable as the original, but the underlying logic still remains the same.
+	<code>write_index_as_tree</code> creates a tree object from the current changes contained in the index. Then a bit
+	further down (if no other options were provided), the actual working directory, including the index state,
+	gets handled in the same manner.
+</p>
+
+<p>The name <code>stash_working_tree</code> seems confusing at first, but what it
+	actually does is create a tree that represents the complete working directory state (staged + unstaged changes)
+	relative to the base commit. It starts with the index tree as a baseline and then applies all
+	working directory changes on top of it. The previously created index tree is reused here together with the
+	actual state of the working directory to create another tree called the working tree. This two-tree approach allows
+	Git to preserve which changes were staged versus unstaged, enabling commands like <code>git stash pop --index</code>
+	to
+	restore the exact repository state.
 </p>
 
 <pre>
-	<code>
-} else if (stash_working_tree(info, ps)) {
+<code>} else if (stash_working_tree(info, ps)) {
 	if (!quiet)
-		fprintf_ln(stderr, _("cannot save the current "
+		fprintf_ln(stderr, _("Cannot save the current "
 				     "worktree state"));
 	ret = -1;
 	goto done;
-}
-	</code>
+}</code>
 </pre>
 
-<p>saves the changes still contained in
-	the working tree. And lastly another call to <code>commit_tree</code> creates the actual commit object that we
-	work
+<p>
+	Finally, another call to <code>commit_tree</code> creates the actual commit object containing this tree that we work
 	with when we run commands like <code>git show stash</code>:
 </p>
 
 <pre>
-	<code>
-if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
+<code>if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
 		parents, &info->w_commit, NULL, NULL)) {
 	if (!quiet)
 		fprintf_ln(stderr, _("Cannot record "
 					 "working tree state"));
 	ret = -1;
 	goto done;
-}
-	</code>
+}</code>
 </pre>
+
+<p>
+	This final commit becomes the actual Git stash entry—a merge commit with multiple parents. It points to both the
+	base commit (HEAD when the stash was created) and the index commit we created earlier, while its tree represents the
+	complete working directory state. This structure allows Git to reconstruct both what was staged and what was
+	unstaged when you later apply the stash.
+</p>
+
+<h3>How Are Stash Messages Displayed?</h3>
+
+<p>
+	Now that we have a proper understanding of what exactly constitutes that what is commonly referred to as a
+	<i>stash</i>, we're ready to move on to tackle the initial problem of reliably renaming a Git stash. The most
+	important thing to consider here above all is the way we're actually viewing a given stash's message. First, we
+	would have to determine if we work with Git using the command line, a GUI, or both. Some GUI clients display a list
+	of stashes together with the messages contained in the actual stash commit. The Git command line interface, in
+	comparison, uses the message stored in the stash reflog instead. So it's necessary to pay attention to rename
+	<strong>both</strong> instances in order to reliably display the new message in different contexts. The actual
+	implementation is then quite straightforward:
+</p>
+
+<ol>
+	<li>
+		Get hold of the actual stash we wish to rename
+	</li>
+	<li>
+		Obtain the underlying tree and the parent commits as explained above
+	</li>
+	<li>
+		Create a new commit using the same metadata (author, committer, etc.) using said tree and parents, but provide a
+		new commit message
+	</li>
+	<li>
+		Take care to update the stash reflog with the new commit as well
+	</li>
+</ol>
+
+<p>
+	The end result might then look like this when using the CLI:
+</p>
+
+<pre>
+<code>max@Maximilians-MacBook-Air ~/home/dev/maxh.site (main) $ git stash list
+stash@{0}: Normalize source paths (redundant after commit 2fae968)
+stash@{1}: WIP on main: 2fae968 Remove trailing slash from directory macro directive
+stash@{2}: HTML headers (security, caching etc.)</code>
+</pre>
+
+<p>
+	For a full example, see the following <a href="https://github.com/mxngls/grs">implementation</a>.
+</p>
+
+<script>
+	document.querySelectorAll('details').forEach(details => {
+		const summary = details.querySelector('summary');
+
+		summary.addEventListener('click', function () {
+			setTimeout(() => {
+				if (!details.open) {
+					summary.scrollIntoView({
+						behavior: 'smooth',
+						block: 'start'
+					});
+				}
+			}, 10);
+		});
+	});
+</script>

@@ -117,7 +117,7 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 	    "    %s\n"
             "</head>\n"
             "<body>\n"
-	    "<div id=\"content\">\n"
+	    "<div id=\"post \"class=\"content\">\n"
             "<main>\n"
 	    "<article>\n",
             // clang-format on
@@ -144,11 +144,14 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
         fprintf_ret = fprintf(dest_file, "%s", html_content);
 
         // close html
+        // clang-format off
         fprintf_ret = fprintf(dest_file, "</article>\n"
                                          "</main>\n"
+					 _SITE_FOOTER
                                          "</div>\n"
                                          "</body>\n"
                                          "</html>\n");
+        // clang-format on
 
         if (fprintf_ret < 0) {
                 ERRORF(SITE_ERROR_FILE_WRITE, dest_file);
@@ -187,7 +190,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
 	    "	 %s\n"
             "</head>\n"
             "<body>\n"
-	    "<div id=\"content\">\n"
+	    "<div id=\"index\" class=\"content\">\n"
             "<main>\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_FOOTNOTE_WEBCOMPONENT);
@@ -205,8 +208,8 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
 
         // add a list of posts to the index
         fprintf_ret = fprintf(dest_file, "<section id=\"post-list\">\n"
-                                         "<h1>Blog</h1>\n"
-                                         "<dl>\n");
+                                         "<h3>Blog</h3>\n"
+                                         "<ol>\n");
 
         for (int i = 0; i < header_arr->len; i++) {
                 bool skip = false;
@@ -226,22 +229,18 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                         snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
                 }
                 fprintf_ret = fprintf(dest_file,
-                                      "<dt>\n"
-                                      "<strong>\n"
+                                      "<li>\n"
                                       "<a href=\"%s\">%s</a>\n"
-                                      "</strong>\n"
                                       "<span \n"
                                       "    class=\"no-hover\"\n"
                                       "    id=\"date-created\"\n"
-                                      "    style=\"margin-left: 0.4em;\"\n"
                                       ">%s</span>\n"
-                                      "</dt>\n"
-                                      "<dd>%s</dd>\n",
+                                      "</li>\n",
                                       header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
-                                      created_formatted, header_arr->elems[i]->subtitle);
+                                      created_formatted);
         }
 
-        fprintf_ret = fprintf(dest_file, "</dl>\n"
+        fprintf_ret = fprintf(dest_file, "</ol>\n"
                                          "</section>\n");
 
         // close <main>

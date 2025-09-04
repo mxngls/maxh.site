@@ -16,16 +16,26 @@
 	"    <footer>\n"\
 	"    <ul>\n"\
 	"	 <li>\n"\
-	"	     <a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">\n"\
-	"               e-mail\n"\
-	"	     </a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
-	"            <a href=\"about.html\">about</a>\n"\
+	"	     <a href=\"/#home\">home</a>\n"\
 	"        </li>\n"\
 	"        <li>\n"\
 	"            <a href=\"feed.atom\">rss</a>\n"\
 	"        </li>\n"\
+	"    	 <li>\n"\
+	"    	 	<span>|</span>\n"\
+	"    	 </li>\n"\
+	"    	 <li>\n"\
+	"    	 	<a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">arena</a>\n"\
+	"    	 </li>\n"\
+	"    	 <li>\n"\
+	"    	 	<a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
+	"    	 </li>\n"\
+	"    	 <li>\n"\
+	"    	 	<a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
+	"    	 </li>\n"\
+	"    	 <li>\n"\
+	"    	 	<a href=\"https://github.com/mxngls\">github</a>\n"\
+	"    	 </li>\n"\
 	"    </ul>\n"\
 	"    </footer>\n"
 // clang-format on
