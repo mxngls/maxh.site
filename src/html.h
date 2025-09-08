@@ -12,31 +12,43 @@
 	"    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n" \
 	"    <link href=\"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap\" rel=\"stylesheet\">\n"
 
+#define _SITE_HEADER \
+	"    <header>\n"\
+	"        <nav>\n"\
+	"            <ul>\n"\
+	"                <li>\n"\
+	"                    <a href=\"/#home\">home</a>\n"\
+	"                </li>\n"\
+	"                <li>\n"\
+	"                    <a href=\"feed.atom\">rss</a>\n"\
+	"                </li>\n"\
+	"            </ul>\n"\
+	"            <ul id=\"contact\">\n"\
+	"                <li>\n"\
+	"                	<a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">arena</a>\n"\
+	"                </li>\n"\
+	"                <li>\n"\
+	"                	<a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
+	"                </li>\n"\
+	"                <li>\n"\
+	"                	<a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
+	"                </li>\n"\
+	"                <li>\n"\
+	"                	<a href=\"https://github.com/mxngls\">github</a>\n"\
+	"                </li>\n"\
+	"            </ul>\n"\
+	"        </nav>\n"\
+	"    </header>\n"
+
 #define _SITE_FOOTER \
 	"    <footer>\n"\
-	"    <ul>\n"\
-	"	 <li>\n"\
-	"	     <a href=\"/#home\">home</a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
-	"            <a href=\"feed.atom\">rss</a>\n"\
-	"        </li>\n"\
-	"    	 <li>\n"\
-	"    	 	<span>|</span>\n"\
-	"    	 </li>\n"\
-	"    	 <li>\n"\
-	"    	 	<a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">arena</a>\n"\
-	"    	 </li>\n"\
-	"    	 <li>\n"\
-	"    	 	<a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
-	"    	 </li>\n"\
-	"    	 <li>\n"\
-	"    	 	<a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
-	"    	 </li>\n"\
-	"    	 <li>\n"\
-	"    	 	<a href=\"https://github.com/mxngls\">github</a>\n"\
-	"    	 </li>\n"\
-	"    </ul>\n"\
+	"        <p>\n"\
+	"            <span>Licensed under\n"\
+	"            <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0\">\n"\
+	"                CC BY-NC-SA 4.0\n"\
+	"            </a> unless marked otherwise.\n"\
+	"            </span>\n"\
+        "        </p>\n"\
 	"    </footer>\n"
 // clang-format on
 

@@ -117,7 +117,8 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 	    "    %s\n"
             "</head>\n"
             "<body>\n"
-	    "<div id=\"post \"class=\"content\">\n"
+	    "<div id=\"post\" class=\"content\">\n"
+	    _SITE_HEADER
             "<main>\n"
 	    "<article>\n",
             // clang-format on
@@ -191,6 +192,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
             "</head>\n"
             "<body>\n"
 	    "<div id=\"index\" class=\"content\">\n"
+	    _SITE_HEADER
             "<main>\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_FOOTNOTE_WEBCOMPONENT);
@@ -208,7 +210,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
 
         // add a list of posts to the index
         fprintf_ret = fprintf(dest_file, "<section id=\"post-list\">\n"
-                                         "<h3>Blog</h3>\n"
+                                         "<h3>Weblog</h3>\n"
                                          "<ol>\n");
 
         for (int i = 0; i < header_arr->len; i++) {

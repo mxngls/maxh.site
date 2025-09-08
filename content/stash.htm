@@ -13,11 +13,9 @@ subtitle: Or, what's a stash anyway?
 	something like this:
 </p>
 
-<p>
 <pre>
 <code>WIP on main: 66ca91c Add navbar</code>
 </pre>
-</p>
 
 <p>
 	The record contains the following information: <strong>(1)</strong> the branch the commit belongs to,
@@ -78,7 +76,8 @@ subtitle: Or, what's a stash anyway?
 		kept for backwards compatibility for another year until finally being removed entirely in commit
 
 		<code>
-			<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>8a2cd3f512
+			<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>
+				8a2cd3f512
 			</a>
 		</code>.
 	</x-footnote>
@@ -94,10 +93,7 @@ subtitle: Or, what's a stash anyway?
 
 <details>
 	<summary>
-		<span>
-			Ignoring all the other details, let's inspect the <code>do_create_stash</code> function a bit more
-			closely.
-		</span>
+		I've highlighted the three most important parts of the <code>do_create_stash</code> function.
 	</summary>
 	<pre>
 <code>static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_buf,
@@ -244,8 +240,8 @@ done:
 </details>
 
 <p>
-	I've highlighted the three most important parts of the function above. The first thing happening is the creation of
-	the current index state as a Git tree and the subsequent commit of said tree:
+	The first thing happening is the creation of the current index state as a Git tree and the subsequent commit of said
+	tree:
 </p>
 
 <pre>

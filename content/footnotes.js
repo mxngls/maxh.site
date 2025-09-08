@@ -23,7 +23,7 @@ class Footnote extends HTMLElement {
 	}
 
 	processContent() {
-		const contentContainer = document.getElementById("post-main");
+		const contentContainer = document.querySelector("article");
 		if (!contentContainer) {
 			console.error(
 				"FootnoteRef: Content container to append footnotes to not found",
@@ -67,14 +67,17 @@ class Footnote extends HTMLElement {
 
 	addFootnote(content) {
 		const li = document.createElement("li");
+		const p = document.createElement("p");
 		const a = document.createElement("a");
 
 		li.id = `footnote-${this.footnoteNumber}`;
-		li.innerHTML = content;
+		p.innerHTML = content;
+		a.classList.add('footnote-back');
 		a.href = `#footnote-ref-${this.footnoteNumber}`;
 		a.innerText = "↩";
 
-		li.appendChild(a);
+		li.appendChild(p);
+		p.appendChild(a);
 
 		const ol = this.footnoteContainer.getElementsByTagName("ol").item(0);
 		if (!ol) {
@@ -84,7 +87,7 @@ class Footnote extends HTMLElement {
 
 		ol.appendChild(li);
 
-		const contentContainer = document.getElementById("post-main");
+		const contentContainer = document.querySelector("article");
 		contentContainer.appendChild(this.footnoteContainer);
 	}
 
