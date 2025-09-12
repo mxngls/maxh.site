@@ -14,41 +14,43 @@
 
 #define _SITE_HEADER \
 	"    <header>\n"\
-	"        <nav>\n"\
-	"            <ul>\n"\
-	"                <li>\n"\
-	"                    <a href=\"/#home\">home</a>\n"\
-	"                </li>\n"\
-	"                <li>\n"\
-	"                    <a href=\"feed.atom\">rss</a>\n"\
-	"                </li>\n"\
-	"            </ul>\n"\
-	"            <ul id=\"contact\">\n"\
-	"                <li>\n"\
-	"                	<a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">arena</a>\n"\
-	"                </li>\n"\
-	"                <li>\n"\
-	"                	<a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
-	"                </li>\n"\
-	"                <li>\n"\
-	"                	<a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
-	"                </li>\n"\
-	"                <li>\n"\
-	"                	<a href=\"https://github.com/mxngls\">github</a>\n"\
-	"                </li>\n"\
-	"            </ul>\n"\
-	"        </nav>\n"\
+	"        <ul>\n"\
+	"            <li>\n"\
+	"                <a href=\"/#home\">home</a>\n"\
+	"            </li>\n"\
+	"            <li id=\"contact\">\n"\
+	"                <ul>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">arena</a>\n"\
+	"                    </li>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
+	"                    </li>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
+	"                    </li>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"https://github.com/mxngls\">github</a>\n"\
+	"                    </li>\n"\
+	"                </ul>\n"\
+	"            </li>\n"\
+	"        </ul>\n"\
 	"    </header>\n"
 
 #define _SITE_FOOTER \
 	"    <footer>\n"\
-	"        <p>\n"\
-	"            <span>Licensed under\n"\
-	"            <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0\">\n"\
-	"                CC BY-NC-SA 4.0\n"\
-	"            </a> unless marked otherwise.\n"\
-	"            </span>\n"\
-        "        </p>\n"\
+        "       <ul>\n"\
+        "           <li>\n"\
+	"              <span>Licensed under\n"\
+	"              <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0\">CC BY-NC-SA 4.0</a>\n"\
+	"              unless marked otherwise.</span>\n"\
+        "           </li>\n"\
+        "           <li>\n"\
+	"              <a class=\"logo\" href=\"feed.atom\" alt=\"Atom (feed) logo\">\n"\
+	"                  <svg width=\"20\" height=\"20\" viewBox=\"0 -960 960 960\" fill=\"currentColor\"><use href=\"rss-logo.svg#rss-logo\"></use></svg>\n"\
+        "              </a>\n"\
+	"           </li>\n"\
+	"       </ul>\n"\
 	"    </footer>\n"
 // clang-format on
 

@@ -26,14 +26,13 @@ static char *html_create_content(page_header *header, char *page_content) {
                                 "                <small>Last Updated on %s</small>\n"
                                 "            </p>\n";
 
-        char hgroup_fmt[] =
-            "            <hgroup>\n"
-            "                <p>\n"
-            "                    <span id=\"date-created\"><a href=\"/\">%s</a></span>\n"
-            "                </p>\n"
-            "                <h1>%s</h1>\n"
-            "                <p>%s</p>\n"
-            "            </hgroup>\n";
+        char hgroup_fmt[] = "            <hgroup>\n"
+                            "                <p>\n"
+                            "                    <span id=\"date-created\">%s</span>\n"
+                            "                </p>\n"
+                            "                <h1>%s</h1>\n"
+                            "                <p>%s</p>\n"
+                            "            </hgroup>\n";
 
         size_t buf_size = 24 * 1024;
         char *buf = NULL;
@@ -119,8 +118,7 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "<body>\n"
 	    "<div id=\"post\" class=\"content\">\n"
 	    _SITE_HEADER
-            "<main>\n"
-	    "<article>\n",
+            "<main>\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, header->title, _SITE_FOOTNOTE_WEBCOMPONENT);
 
@@ -146,8 +144,7 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 
         // close html
         // clang-format off
-        fprintf_ret = fprintf(dest_file, "</article>\n"
-                                         "</main>\n"
+        fprintf_ret = fprintf(dest_file, "</main>\n"
 					 _SITE_FOOTER
                                          "</div>\n"
                                          "</body>\n"

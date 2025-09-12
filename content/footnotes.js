@@ -23,7 +23,7 @@ class Footnote extends HTMLElement {
 	}
 
 	processContent() {
-		const contentContainer = document.querySelector("article");
+		const contentContainer = document.querySelector("main");
 		if (!contentContainer) {
 			console.error(
 				"FootnoteRef: Content container to append footnotes to not found",
@@ -87,7 +87,7 @@ class Footnote extends HTMLElement {
 
 		ol.appendChild(li);
 
-		const contentContainer = document.querySelector("article");
+		const contentContainer = document.querySelector("main");
 		contentContainer.appendChild(this.footnoteContainer);
 	}
 

@@ -51,34 +51,30 @@ subtitle: Or, what's a stash anyway?
 	<x-footnote>
 		Interestingly, besides the plain term <i>tree</i>, another one often encountered and used throughout the man
 		pages of various Git commands is the notion of a <i>tree-ish</i> object. The Git kernel
-		<a href='https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html'>
-			documentation
-		</a> defines this basically as anything that can be dereferenced to a Git object. And indeed, looking at
+		<a href='https://www.kernel.org/pub/software/scm/git/docs/gitglossary.html'>documentation</a> defines this
+		basically as anything that can be dereferenced to a Git object. And indeed, looking at
 		<code>disambiguate_treeish_only</code> shows exactly that.
 	</x-footnote>
 	While the man page for the stash command serves as a great first clue, it's usually best to inspect the source code
 	to gain a full understanding of how things actually work under the hood. Similar to the rebase command, the
 	stash command evolved from a simple Bash script that was introduced with commit
 	<code>
-		<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=f2c66ed196d1d1410d014e4ee3e2b585936101f5'>
-			f2c66ed196
-		</a>
+		<a
+			href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=f2c66ed196d1d1410d014e4ee3e2b585936101f5'>f2c66ed196</a>
 	</code>.
 	<x-footnote>
 		Quite surprisingly though, the stash functionality was contained in said shell script for almost 15 years
 		until commit
 		<code>
-			<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=e36adf712251a19bd2ada0016764d340dfcf2ba0'>
-				e36adf7122
-			</a>
+			<a
+				href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=e36adf712251a19bd2ada0016764d340dfcf2ba0'>e36adf7122</a>
 		</code>
 		when it was replaced by a new file written in C. The script was
 		kept for backwards compatibility for another year until finally being removed entirely in commit
 
 		<code>
-			<a href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>
-				8a2cd3f512
-			</a>
+			<a
+				href='https://git.kernel.org/pub/scm/git/git.git/commit/?id=8a2cd3f5123ac822fd64ca8efc4f84e122a1edb3'>8a2cd3f512</a>
 		</code>.
 	</x-footnote>
 </p>
@@ -93,7 +89,9 @@ subtitle: Or, what's a stash anyway?
 
 <details>
 	<summary>
-		I've highlighted the three most important parts of the <code>do_create_stash</code> function.
+		<span>
+			I've highlighted the three most important parts of the <code>do_create_stash</code> function.
+		</span>
 	</summary>
 	<pre>
 <code>static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_buf,
@@ -350,20 +348,3 @@ stash@{2}: HTML headers (security, caching etc.)</code>
 <p>
 	For a full example, see the following <a href="https://github.com/mxngls/grs">implementation</a>.
 </p>
-
-<script>
-	document.querySelectorAll('details').forEach(details => {
-		const summary = details.querySelector('summary');
-
-		summary.addEventListener('click', function () {
-			setTimeout(() => {
-				if (!details.open) {
-					summary.scrollIntoView({
-						behavior: 'smooth',
-						block: 'start'
-					});
-				}
-			}, 10);
-		});
-	});
-</script>
