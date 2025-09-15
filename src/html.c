@@ -208,7 +208,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         // add a list of posts to the index
         fprintf_ret = fprintf(dest_file, "<section id=\"post-list\">\n"
                                          "<h3>Weblog</h3>\n"
-                                         "<ol>\n");
+                                         "<dl>\n");
 
         for (int i = 0; i < header_arr->len; i++) {
                 bool skip = false;
@@ -222,24 +222,22 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                 size_t created_formatted_size = 256;
                 char created_formatted[created_formatted_size];
                 if (header_arr->elems[i]->meta.created) {
-                        ghist_format_ts("%d %b, %Y", created_formatted,
+                        ghist_format_ts("%Y&#8209;%M&#8209;%d", created_formatted,
                                         header_arr->elems[i]->meta.created);
                 } else {
                         snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
                 }
                 fprintf_ret = fprintf(dest_file,
-                                      "<li>\n"
-                                      "<a href=\"%s\">%s</a>\n"
-                                      "<span \n"
-                                      "    class=\"no-hover\"\n"
-                                      "    id=\"date-created\"\n"
-                                      ">%s</span>\n"
-                                      "</li>\n",
+                                      "<div class=\"post-entry\">\n"
+                                      "<dt><a href=\"%s\">%s</a></dt>\n"
+                                      "<dd class=\"subtitle\">%s</dd>\n"
+                                      "<dd class=\"date\">%s</dd>\n"
+                                      "</div>\n",
                                       header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
-                                      created_formatted);
+                                      header_arr->elems[i]->subtitle, created_formatted);
         }
 
-        fprintf_ret = fprintf(dest_file, "</ol>\n"
+        fprintf_ret = fprintf(dest_file, "</dl>\n"
                                          "</section>\n");
 
         // close <main>

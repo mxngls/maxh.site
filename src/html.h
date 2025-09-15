@@ -45,8 +45,8 @@
 	"              <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0\">CC BY-NC-SA 4.0</a>\n"\
 	"              unless marked otherwise.</span>\n"\
         "           </li>\n"\
-        "           <li>\n"\
-	"              <a class=\"logo\" href=\"feed.atom\" alt=\"Atom (feed) logo\">\n"\
+        "           <li class=\"logo\">\n"\
+	"              <a href=\"feed.atom\" alt=\"Atom (feed) logo\">\n"\
 	"                  <svg width=\"20\" height=\"20\" viewBox=\"0 -960 960 960\" fill=\"currentColor\"><use href=\"rss-logo.svg#rss-logo\"></use></svg>\n"\
         "              </a>\n"\
 	"           </li>\n"\
