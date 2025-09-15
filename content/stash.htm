@@ -34,7 +34,7 @@ subtitle: Or, what's a stash anyway?
 	safely rename a stash—a feature that is miraculously still missing.
 </p>
 
-<h3>But what exactly is a stash?</h3>
+<h2>But what exactly is a stash?</h2>
 
 <p>
 	Without diving into a full explanation of how Git in its entirety works, in order to understand what exactly a
@@ -86,156 +86,6 @@ subtitle: Or, what's a stash anyway?
 	For anyone who has used stashes before, these names should sound quite familiar as they're almost the same as their
 	user-facing command line counterparts.
 </p>
-
-<details>
-	<summary>
-		<span>
-			I've highlighted the three most important parts of the <code>do_create_stash</code> function.
-		</span>
-	</summary>
-	<pre>
-<code>static int do_create_stash(const struct pathspec *ps, struct strbuf *stash_msg_buf,
-			   int include_untracked, int patch_mode, struct add_p_opt *add_p_opt,
-			   int only_staged, struct stash_info *info, struct strbuf *patch,
-			   int quiet)
-{
-	int ret = 0;
-	int flags = 0;
-	int untracked_commit_option = 0;
-	const char *head_short_sha1 = NULL;
-	const char *branch_ref = NULL;
-	const char *branch_name = "(no branch)";
-	char *branch_name_buf = NULL;
-	struct commit *head_commit = NULL;
-	struct commit_list *parents = NULL;
-	struct strbuf msg = STRBUF_INIT;
-	struct strbuf commit_tree_label = STRBUF_INIT;
-	struct strbuf untracked_files = STRBUF_INIT;
-
-	prepare_fallback_ident("git stash", "git@stash");
-
-	repo_read_index_preload(the_repository, NULL, 0);
-	if (repo_refresh_and_write_index(the_repository, REFRESH_QUIET, 0, 0,
-					 NULL, NULL, NULL) < 0) {
-		ret = error(_("could not write index"));
-		goto done;
-	}
-
-	if (repo_get_oid(the_repository, "HEAD", &info->b_commit)) {
-		if (!quiet)
-			fprintf_ln(stderr, _("You do not have "
-					     "the initial commit yet"));
-		ret = -1;
-		goto done;
-	} else {
-		head_commit = lookup_commit(the_repository, &info->b_commit);
-	}
-
-	if (!check_changes(ps, include_untracked, &untracked_files)) {
-		ret = 1;
-		goto done;
-	}
-
-	branch_ref = refs_resolve_ref_unsafe(get_main_ref_store(the_repository),
-					     "HEAD", 0, NULL, &flags);
-
-	if (flags & REF_ISSYMREF) {
-		if (skip_prefix(branch_ref, "refs/heads/", &branch_name))
-			branch_name = branch_name_buf = xstrdup(branch_name);
-	}
-
-	head_short_sha1 = repo_find_unique_abbrev(the_repository,
-						  &head_commit->object.oid,
-						  DEFAULT_ABBREV);
-	strbuf_addf(&msg, "%s: %s ", branch_name, head_short_sha1);
-	pp_commit_easy(CMIT_FMT_ONELINE, head_commit, &msg);
-
-	strbuf_addf(&commit_tree_label, "index on %s\n", msg.buf);
-	commit_list_insert(head_commit, &parents);
-	<span class="highlight">if (write_index_as_tree(&info->i_tree, the_repository->index,
-				repo_get_index_file(the_repository), 0, NULL) ||
-	    commit_tree(commit_tree_label.buf, commit_tree_label.len,
-			&info->i_tree, parents, &info->i_commit, NULL, NULL)) {
-		if (!quiet)
-			fprintf_ln(stderr, _("Cannot save the current "
-					     "index state"));
-		ret = -1;
-		goto done;
-	}</span>
-
-	free_commit_list(parents);
-	parents = NULL;
-
-	if (include_untracked) {
-		if (save_untracked_files(info, &msg, untracked_files)) {
-			if (!quiet)
-				fprintf_ln(stderr, _("Cannot save "
-						     "the untracked files"));
-			ret = -1;
-			goto done;
-		}
-		untracked_commit_option = 1;
-	}
-	if (patch_mode) {
-		ret = stash_patch(info, ps, patch, quiet, add_p_opt);
-		if (ret < 0) {
-			if (!quiet)
-				fprintf_ln(stderr, _("Cannot save the current "
-						     "worktree state"));
-			goto done;
-		} else if (ret > 0) {
-			goto done;
-		}
-	} else if (only_staged) {
-		ret = stash_staged(info, patch, quiet);
-		if (ret < 0) {
-			if (!quiet)
-				fprintf_ln(stderr, _("Cannot save the current "
-						     "staged state"));
-			goto done;
-		} else if (ret > 0) {
-			goto done;
-		}
-	<span class="highlight">} else if (stash_working_tree(info, ps)) {
-		if (!quiet)
-			fprintf_ln(stderr, _("Cannot save the current "
-					     "worktree state"));
-		ret = -1;
-		goto done;
-	}</span>
-
-	if (!stash_msg_buf->len)
-		strbuf_addf(stash_msg_buf, "WIP on %s", msg.buf);
-	else
-		strbuf_insertf(stash_msg_buf, 0, "On %s: ", branch_name);
-
-	if (untracked_commit_option)
-		commit_list_insert(lookup_commit(the_repository,
-						 &info->u_commit),
-				   &parents);
-	commit_list_insert(lookup_commit(the_repository, &info->i_commit),
-			   &parents);
-	commit_list_insert(head_commit, &parents);
-
-	<span class="highlight">if (commit_tree(stash_msg_buf->buf, stash_msg_buf->len, &info->w_tree,
-			parents, &info->w_commit, NULL, NULL)) {
-		if (!quiet)
-			fprintf_ln(stderr, _("Cannot record "
-						 "working tree state"));
-		ret = -1;
-		goto done;
-	}</span>
-
-done:
-	strbuf_release(&commit_tree_label);
-	strbuf_release(&msg);
-	strbuf_release(&untracked_files);
-	free_commit_list(parents);
-	free(branch_name_buf);
-	return ret;
-}</code>
-	</pre>
-</details>
 
 <p>
 	The first thing happening is the creation of the current index state as a Git tree and the subsequent commit of said
@@ -305,7 +155,7 @@ done:
 	unstaged when you later apply the stash.
 </p>
 
-<h3>How Are Stash Messages Displayed?</h3>
+<h2>How Are Stash Messages Displayed?</h2>
 
 <p>
 	Now that we have a proper understanding of what exactly constitutes that what is commonly referred to as a

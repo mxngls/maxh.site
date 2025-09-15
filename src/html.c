@@ -22,17 +22,20 @@ static int qsort_cb(const void *a, const void *b) {
 
 // package content
 static char *html_create_content(page_header *header, char *page_content) {
-        char p_modified_fmt[] = "            <p id=\"date-updated\">\n"
-                                "                <small>Last Updated on %s</small>\n"
-                                "            </p>\n";
-
-        char hgroup_fmt[] = "            <hgroup>\n"
-                            "                <p>\n"
-                            "                    <span id=\"date-created\">%s</span>\n"
-                            "                </p>\n"
+        char hgroup_fmt[] = "            <hgroup id=\"post-header\">\n"
+                            "                <span id=\"date-created\">%s</span>\n"
                             "                <h1>%s</h1>\n"
                             "                <p>%s</p>\n"
                             "            </hgroup>\n";
+
+        char hgroup_with_updated_fmt[] = "            <hgroup id=\"post-header\">\n"
+                                         "                <span id=\"date-created\">%s</span>\n"
+                                         "                <h1>%s</h1>\n"
+                                         "                <p>%s</p>\n"
+                                         "                <span id=\"date-updated\">\n"
+                                         "                    <small>Last Updated on %s</small>\n"
+                                         "                </span>\n"
+                                         "            </hgroup>\n";
 
         size_t buf_size = 24 * 1024;
         char *buf = NULL;
@@ -52,13 +55,22 @@ static char *html_create_content(page_header *header, char *page_content) {
                 snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
         }
 
-        // add header group
-        offset = snprintf(pos, buf_size - offset, hgroup_fmt, created_formatted, header->title,
-                          header->subtitle);
+        // add header group (with or without modification date)
+        if (header->meta.modified) {
+                size_t modified_formatted_size = 256;
+                char modified_formatted[modified_formatted_size];
+                ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
+                offset =
+                    snprintf(pos, buf_size - offset, hgroup_with_updated_fmt, created_formatted,
+                             header->title, header->subtitle, modified_formatted);
+        } else {
+                offset = snprintf(pos, buf_size - offset, hgroup_fmt, created_formatted,
+                                  header->title, header->subtitle);
+        }
         pos += offset;
 
         // separate main content from header group and post footer
-        offset = snprintf(pos, buf_size - offset, "%s\n", "<div id=\"post-main\">");
+        offset = snprintf(pos, buf_size - offset, "%s\n", "<div id=\"post-body\">");
         pos += offset;
 
         // add content
@@ -74,15 +86,6 @@ static char *html_create_content(page_header *header, char *page_content) {
         // close main content
         offset = snprintf(pos, buf_size - offset, "%s\n", "</div>");
         pos += offset;
-
-        // add modification date if present
-        if (header->meta.modified) {
-                size_t modified_formatted_size = 256;
-                char modified_formatted[modified_formatted_size];
-                ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
-                offset = snprintf(pos, buf_size, p_modified_fmt, modified_formatted);
-                pos += offset;
-        }
 
         return buf;
 }
@@ -118,7 +121,8 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "<body>\n"
 	    "<div id=\"post\" class=\"content\">\n"
 	    _SITE_HEADER
-            "<main>\n",
+            "<main>\n"
+	    "<div id=\"post-main\">\n",
             // clang-format on
             _SITE_STYLE_SHEET_PATH, header->title, _SITE_FOOTNOTE_WEBCOMPONENT);
 
@@ -144,7 +148,10 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 
         // close html
         // clang-format off
-        fprintf_ret = fprintf(dest_file, "</main>\n"
+        fprintf_ret = fprintf(dest_file, "<div id=\"back-to-top\" class=\"bubble\">"
+			                 "    <a href=\"#post\" title=\"Back to top\">↑ Top</a></div>\n"
+					 "</div>\n"
+					 "</main>\n"
 					 _SITE_FOOTER
                                          "</div>\n"
                                          "</body>\n"
@@ -207,7 +214,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
 
         // add a list of posts to the index
         fprintf_ret = fprintf(dest_file, "<section id=\"post-list\">\n"
-                                         "<h3>Weblog</h3>\n"
+                                         "<h1>Weblog</h1>\n"
                                          "<dl>\n");
 
         for (int i = 0; i < header_arr->len; i++) {
@@ -228,11 +235,11 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                         snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
                 }
                 fprintf_ret = fprintf(dest_file,
-                                      "<div class=\"post-entry\">\n"
-                                      "<dt><a href=\"%s\">%s</a></dt>\n"
-                                      "<dd class=\"subtitle\">%s</dd>\n"
-                                      "<dd class=\"date\">%s</dd>\n"
-                                      "</div>\n",
+                                      "<a class=\"post-entry\" href=\"%s\" role=\"button\">"
+                                      "<dt class=\"bubble\">%s</dt>\n"
+                                      "<dd class=\"bubble subtitle\">%s</dd>\n"
+                                      "<dd class=\"bubble date\">%s</dd>\n"
+                                      "</a>\n",
                                       header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
                                       header_arr->elems[i]->subtitle, created_formatted);
         }
