@@ -12,21 +12,45 @@
 	"    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n" \
 	"    <link href=\"https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap\" rel=\"stylesheet\">\n"
 
+#define _SITE_HEADER \
+	"    <header>\n"\
+	"        <div class=\"bubble\">\n"\
+	"            <div id=\"blog\">\n"\
+	"                <a href=\"/#index\" role=\"button\">blog</a>\n"\
+	"            </div>\n"\
+	"            <div id=\"contact\">\n"\
+	"                <ul>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"https://www.are.na/max-h-ezqbxuoriw4/channels\">arena</a>\n"\
+	"                    </li>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"https://bsky.app/profile/maxh.site\">bluesky</a>\n"\
+	"                    </li>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">e-mail</a>\n"\
+	"                    </li>\n"\
+	"                    <li>\n"\
+	"                    	<a href=\"https://github.com/mxngls\">github</a>\n"\
+	"                    </li>\n"\
+	"                </ul>\n"\
+	"            </div>\n"\
+	"        </div>\n"\
+	"    </header>\n"
+
 #define _SITE_FOOTER \
 	"    <footer>\n"\
-	"    <ul>\n"\
-	"	 <li>\n"\
-	"	     <a href=\"mailto:maximilian._REMOVE_.e.@gmail.com\">\n"\
-	"               e-mail\n"\
-	"	     </a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
-	"            <a href=\"about.html\">about</a>\n"\
-	"        </li>\n"\
-	"        <li>\n"\
-	"            <a href=\"feed.atom\">rss</a>\n"\
-	"        </li>\n"\
-	"    </ul>\n"\
+	"        <ul>\n"\
+        "           <li id=\"license\">\n"\
+	"              <span>Licensed under\n"\
+	"              <a rel=\"license\" href=\"https://creativecommons.org/licenses/by-nc-sa/4.0\">CC BY-NC-SA 4.0</a>\n"\
+	"              unless marked otherwise.</span>\n"\
+        "           </li>\n"\
+        "           <li class=\"logo\">\n"\
+	"              <a href=\"feed.atom\" alt=\"Atom (feed) logo\">\n"\
+	"                  <svg width=\"20\" height=\"20\" viewBox=\"0 -960 960 960\" fill=\"currentColor\"><use href=\"rss-logo.svg#rss-logo\"></use></svg>\n"\
+        "              </a>\n"\
+	"           </li>\n"\
+	"        </ul>\n"\
 	"    </footer>\n"
 // clang-format on
 
