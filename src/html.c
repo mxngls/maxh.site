@@ -336,7 +336,7 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 
         // close html
         // clang-format off
-        fprintf_ret = fprintf(dest_file, "<div id=\"back-to-top\" class=\"bubble\">"
+        fprintf_ret = fprintf(dest_file, "<div id=\"back-to-top\">"
 			                 "    <a href=\"#post\" title=\"Back to top\">↑ Top</a></div>\n"
 					 "</div>\n"
 					 "</main>\n"

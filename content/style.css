@@ -72,7 +72,7 @@ header {
 	margin-bottom: 2em;
 }
 
-header .bubble {
+header > div {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
@@ -138,17 +138,7 @@ footer ul li {
 
 .logo {
 	white-space: nowrap;
-}
-
-.logo {
 	order: 2;
-}
-
-.bubble {
-	padding: 0.6rem 1.4rem;
-	border: 1px solid var(--color-gray2);
-	border-radius: 8px;
-	box-sizing: border-box;
 }
 
 h1 {
@@ -281,13 +271,10 @@ ul#post-list .subtitle {
 	z-index: 100;
 }
 
-#back-to-top.bubble {
-	border: none;
-}
-
-#back-to-top.bubble a {
-	text-decoration: none;
+#back-to-top a {
 	display: block;
+
+	text-decoration: none;
 }
 
 .footnote-ref {
