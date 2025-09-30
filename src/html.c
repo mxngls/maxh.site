@@ -413,14 +413,16 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                 }
                 fprintf_ret = fprintf(dest_file,
                                       "<li>\n"
+                                      "<div class=\"post-item-header\">\n"
                                       "<a href=\"%s\">\n"
-                                      "<div class=\"title\">%s</div>\n"
-                                      "<div class=\"subtitle\">%s</div>\n"
-                                      "<div class=\"date\">%s</div>\n"
+                                      "<span class=\"title\">%s</span>\n"
                                       "</a>\n"
+                                      "<span class=\"date\">%s</span>\n"
+                                      "</div>\n"
+                                      "<div class=\"subtitle\">%s</div>\n"
                                       "</li>\n",
                                       header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
-                                      header_arr->elems[i]->subtitle, created_formatted);
+                                      created_formatted, header_arr->elems[i]->subtitle);
         }
 
         fprintf_ret = fprintf(dest_file, "</ul>\n"

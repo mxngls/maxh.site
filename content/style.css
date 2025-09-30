@@ -9,6 +9,10 @@
 	--color-teal2: #9f8618;
 }
 
+html {
+	overflow-y: scroll;
+}
+
 html,
 body {
 	height: 100%;
@@ -69,7 +73,7 @@ main {
 }
 
 header {
-	margin-bottom: 2em;
+	margin-bottom: 3em;
 }
 
 header > div {
@@ -77,8 +81,6 @@ header > div {
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 1rem;
-	border: none;
-	padding: 0;
 }
 
 #blog {
@@ -104,7 +106,7 @@ header > div {
 }
 
 footer {
-	margin-top: 2em;
+	margin-top: 3em;
 	margin-bottom: 0.67em;
 }
 
@@ -116,11 +118,13 @@ footer ul {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 10px;
+
 	max-width: 100%;
 }
 
@@ -143,16 +147,14 @@ footer ul li {
 
 h1 {
 	font-size: 2rem;
-
-	margin-top: 0;
-	margin-bottom: 0;
+	margin: 0;
 }
 
 section {
 	margin-bottom: 2em;
 }
 
-section > h1 {
+section>h1 {
 	font-size: 1.5rem;
 }
 
@@ -183,12 +185,10 @@ article {
 }
 
 #footnotes {
-	border-top: 1px solid var(--color-gray2);
-}
-
-#footnotes {
-	padding: 1.5em 0;
 	margin-top: 1.5em;
+	padding: 1.5em 0;
+
+	border-top: 1px solid var(--color-gray2);
 }
 
 #footnotes ol {
@@ -196,7 +196,6 @@ article {
 }
 
 ul#post-list {
-	margin-top: 2em;
 	padding: 0;
 	list-style: none;
 }
@@ -205,18 +204,22 @@ ul#post-list li {
 	margin-bottom: 2em;
 }
 
-ul#post-list a {
-	text-decoration: none;
+ul#post-list .post-item-header {
 	display: flex;
-	flex-wrap: wrap;
 	justify-content: space-between;
 	align-items: baseline;
-	gap: 0.4em;
+	gap: 1em;
+}
+
+ul#post-list a {
+	text-decoration: none;
 }
 
 ul#post-list .title {
-	color: var(--color-teal2);
 	font-weight: bold;
+
+	color: var(--color-teal2);
+
 	text-decoration: underline;
 	text-decoration-thickness: 1.5px;
 	text-underline-offset: 6px;
@@ -229,15 +232,20 @@ ul#post-list a:hover .title {
 }
 
 ul#post-list .date {
-	color: var(--color-gray3);
+	margin-left: auto;
+
 	opacity: 0.7;
-	font-size: 95%;
 	white-space: nowrap;
+
+	color: var(--color-gray4);
+
+	font-size: 95%;
+	font-weight: bolder;
 }
 
 ul#post-list .subtitle {
-	flex-basis: 100%;
 	color: var(--color-gray5);
+	margin-top: 0.2em;
 }
 
 #date-created,
@@ -257,11 +265,16 @@ ul#post-list .subtitle {
 }
 
 #post-header {
-	margin-bottom: 1em;
+	margin-bottom: 2em;
+}
+
+#post-header .subtitle {
+	margin-top: 0.5em;
 }
 
 #post-body {
 	flex: 1;
+	margin-bottom: 2em;
 }
 
 #back-to-top {
