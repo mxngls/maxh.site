@@ -39,15 +39,15 @@ tracked_file_arr tracked_arr = {
 };
 
 // utils
-int __copy_file(char *, char *);
-FTS *__init_fts(char *);
-int __create_output_dirs(void);
+static int __copy_file(char *, char *);
+static FTS *__init_fts(char *);
+static int __create_dir(char *);
 
 // main routines
-page_header *process_page_file(FTSENT *);
-int process_index_file(char *, page_header_arr *);
+static page_header *__process_page_file(FTSENT *);
+static int __process_index_file(char *, page_header_arr *);
 
-int __copy_file(char *from, char *to) {
+static int __copy_file(char *from, char *to) {
         FILE *from_file = NULL;
         FILE *to_file = NULL;
 
@@ -87,7 +87,7 @@ int __copy_file(char *from, char *to) {
         return res;
 }
 
-int __create_dir(char *dir_name) {
+static int __create_dir(char *dir_name) {
         mode_t mode = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
 
         if (mkdir(dir_name, mode) != 0 && errno != EEXIST) {
@@ -98,7 +98,7 @@ int __create_dir(char *dir_name) {
         return 0;
 }
 
-FTS *__init_fts(char *source) {
+static FTS *__init_fts(char *source) {
         FTS *ftsp = NULL;
         char *paths[] = {(char *)source, NULL};
         int _fts_options = FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR;
@@ -116,8 +116,9 @@ FTS *__init_fts(char *source) {
         return ftsp;
 }
 
-page_header *process_page_file(FTSENT *ftsentp) {
+static page_header *__process_page_file(FTSENT *ftsentp) {
         page_header *res = NULL;
+        char *source_path = ftsentp->fts_path;
         FILE *source_file = NULL;
         tracked_file *tracked = NULL;
         page_header *header = NULL;
@@ -195,7 +196,7 @@ cleanup:
         return res;
 }
 
-int process_index_file(char *index_file_path, page_header_arr *header_arr) {
+static int __process_index_file(char *index_file_path, page_header_arr *header_arr) {
         int res = 0;
         FILE *source_file = NULL;
         char *page_content = NULL;
@@ -310,7 +311,7 @@ int main(void) {
                 }
 
                 page_header *header = NULL;
-                if ((header = process_page_file(ftsentp)) == NULL) {
+                if ((header = __process_page_file(ftsentp)) == NULL) {
                         res = -1;
                 } else {
                         header_arr.elems[header_arr.len] = header;
@@ -318,7 +319,7 @@ int main(void) {
                 }
         }
 
-        if (process_index_file(_SITE_SOURCE_DIR "/" _SITE_INDEX_PATH, &header_arr) != 0) {
+        if (__process_index_file(_SITE_SOURCE_DIR "/" _SITE_INDEX_PATH, &header_arr) != 0) {
                 res = -1;
         }
 

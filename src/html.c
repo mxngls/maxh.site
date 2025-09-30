@@ -10,7 +10,7 @@
 #include "page.h"
 
 // compare by creation time
-static int qsort_cb(const void *a, const void *b) {
+static int __qsort_cb(const void *a, const void *b) {
         page_header *header_a = *(page_header **)a;
         page_header *header_b = *(page_header **)b;
 
@@ -210,7 +210,7 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         }
 
         // sort by creation time
-        qsort(header_arr->elems, header_arr->len, sizeof(page_header *), qsort_cb);
+        qsort(header_arr->elems, header_arr->len, sizeof(page_header *), __qsort_cb);
 
         // add a list of posts to the index
         fprintf_ret = fprintf(dest_file, "<section>\n"

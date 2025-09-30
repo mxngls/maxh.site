@@ -21,7 +21,7 @@ typedef struct {
 
 static renamed_file_arr rename_arr = {0};
 
-static void add_rename(char *old_path, char *new_path, git_time_t timestamp) {
+static void __add_rename(char *old_path, char *new_path, git_time_t timestamp) {
         if (rename_arr.records == NULL) {
                 rename_arr.records = malloc(sizeof(rename_record) * 100);
                 rename_arr.capacity = 100;
@@ -39,7 +39,7 @@ static void add_rename(char *old_path, char *new_path, git_time_t timestamp) {
         rename_arr.len++;
 }
 
-static void trace_rename(char *final_path, git_time_t *creation_time,
+static void __trace_rename(char *final_path, git_time_t *creation_time,
                          git_time_t *modification_time) {
 
         char *current_path = strdup(final_path);
@@ -59,7 +59,7 @@ static void trace_rename(char *final_path, git_time_t *creation_time,
         free(current_path);
 }
 
-static int get_times_cb(const git_diff_delta *delta, __attribute__((unused)) float progress,
+static int __get_times_cb(const git_diff_delta *delta, __attribute__((unused)) float progress,
                         void *payload) {
         if (!delta || !delta->new_file.path) return 0;
 
@@ -82,7 +82,7 @@ static int get_times_cb(const git_diff_delta *delta, __attribute__((unused)) flo
 
         // rename detected
         if (delta->similarity > 50 && strcmp(old_file_path, file_path) != 0) {
-                add_rename(old_file_path, file_path, author_time);
+                __add_rename(old_file_path, file_path, author_time);
 
                 if (access(file_path, F_OK) == 0 && !ghist_find_by_path(file_path)) {
                         tracked_file new_file = {
@@ -184,7 +184,7 @@ int ghist_times(void) {
                 if (git_diff_find_similar(diff, find_opts)) goto error;
 
                 git_signature *signature = (git_signature *)git_commit_author(commit);
-                if (git_diff_foreach(diff, &get_times_cb, NULL, NULL, NULL, (void *)signature))
+                if (git_diff_foreach(diff, &__get_times_cb, NULL, NULL, NULL, (void *)signature))
                         goto error;
         }
 
@@ -192,7 +192,7 @@ int ghist_times(void) {
         for (int i = 0; i < tracked_arr.len; i++) {
                 git_time_t creation_time = 0;
                 git_time_t last_rename_time = 0;
-                trace_rename(tracked_arr.files[i].file_path, &creation_time, &last_rename_time);
+                __trace_rename(tracked_arr.files[i].file_path, &creation_time, &last_rename_time);
                 if (creation_time > 0) {
                         tracked_arr.files[i].creat_time = creation_time;
                 }
