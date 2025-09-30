@@ -125,7 +125,7 @@ static page_header *__process_page_file(FTSENT *ftsentp) {
         char *page_content = NULL;
 
         if ((source_file = fopen(ftsentp->fts_path, "r")) == NULL) {
-                ERRORF(SITE_ERROR_FILE_READ, ftsentp->fts_path);
+                ERRORF(SITE_ERROR_FILE_READ, source_path);
                 goto error;
         }
 
@@ -146,7 +146,7 @@ static page_header *__process_page_file(FTSENT *ftsentp) {
         strcat(page_href, page_name);
         strncpy(header->meta.path, page_href, _SITE_PATH_MAX - 1);
 
-        if ((tracked = ghist_find_by_path(ftsentp->fts_path))) {
+        if ((tracked = ghist_find_by_path(source_path))) {
                 header->meta.created = tracked->creat_time;
                 header->meta.modified = tracked->mod_time;
         }
@@ -154,7 +154,7 @@ static page_header *__process_page_file(FTSENT *ftsentp) {
         // read content
         int header_len = -1;
         if ((header_len = page_parse_header(source_file, header)) == -1) {
-                ERRORF(SITE_ERROR_MISSING_HEADERS, page_name);
+                ERRORF(SITE_ERROR_MISSING_HEADERS, source_path);
                 goto error;
         };
         size_t content_size = ftsentp->fts_statp->st_size - header_len;
@@ -168,9 +168,9 @@ static page_header *__process_page_file(FTSENT *ftsentp) {
                 if (feof(source_file)) {
                         printf("Page has no content. Aborting.\n");
                 } else if (ferror(source_file)) {
-                        ERRORF(SITE_ERROR_FILE_READ, ftsentp->fts_path);
+                        ERRORF(SITE_ERROR_FILE_READ, source_path);
                 } else {
-                        ERRORF(SITE_ERROR_UNEXPECTED_EOF, ftsentp->fts_path);
+                        ERRORF(SITE_ERROR_UNEXPECTED_EOF, source_path);
                 }
                 goto error;
         }
@@ -267,12 +267,12 @@ int main(void) {
 
         if (ghist_times()) {
                 res = -1;
-                return res;
+                goto cleanup;
         }
 
         if ((ftsp = __init_fts(_SITE_SOURCE_DIR)) == NULL) {
                 res = -1;
-                return res;
+                goto cleanup;
         }
 
         while ((ftsentp = fts_read(ftsp)) != NULL) {
@@ -327,8 +327,9 @@ int main(void) {
                 res = -1;
         }
 
+cleanup:
         // cleanup
-        fts_close(ftsp);
+        if (ftsp) fts_close(ftsp);
         for (int i = 0; i < header_arr.len; i++) {
                 free((char *)header_arr.elems[i]->title);
                 free((char *)header_arr.elems[i]->subtitle);
