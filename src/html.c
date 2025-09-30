@@ -15,7 +15,6 @@
 char *site_header = NULL;
 char *site_footer = NULL;
 char *site_hgroup = NULL;
-char *site_hgroup_updated = NULL;
 
 // compare by creation time
 static int __qsort_cb(const void *a, const void *b) {
@@ -137,7 +136,6 @@ int html_init_templates(void) {
         page_block header_block = {0};
         page_block footer_block = {0};
         page_block hgroup_block = {0};
-        page_block hgroup_updated_block = {0};
 
         // load header
         if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/header.htm", &header_block) != 0) {
@@ -154,17 +152,10 @@ int html_init_templates(void) {
                 goto error;
         }
 
-        // load hgroup_updated
-        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/hgroup_updated.htm", &hgroup_updated_block) !=
-            0) {
-                goto error;
-        }
-
         // transfer ownership
         site_header = header_block.content;
         site_footer = footer_block.content;
         site_hgroup = hgroup_block.content;
-        site_hgroup_updated = hgroup_updated_block.content;
 
         return 0;
 
@@ -172,7 +163,6 @@ error:
         if (header_block.content) free(header_block.content);
         if (footer_block.content) free(footer_block.content);
         if (hgroup_block.content) free(hgroup_block.content);
-        if (hgroup_updated_block.content) free(hgroup_updated_block.content);
         return -1;
 }
 
@@ -189,10 +179,6 @@ void html_cleanup_templates(void) {
         if (site_hgroup) {
                 free(site_hgroup);
                 site_hgroup = NULL;
-        }
-        if (site_hgroup_updated) {
-                free(site_hgroup_updated);
-                site_hgroup_updated = NULL;
         }
 }
 
@@ -217,33 +203,25 @@ static char *__html_create_content(page_header *header, char *page_content) {
                 snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
         }
 
-        // add header group (with or without modification date)
-        const char *template_content;
-        char modified_formatted[256];
+        // add header group
+        const char *template_content = site_hgroup;
         int has_modified = header->meta.modified != 0;
+        char modified_formatted[256];
 
         if (has_modified) {
-                template_content = site_hgroup_updated;
                 ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
-        } else {
-                template_content = site_hgroup;
         }
 
         // indent the content
-        char *indented = __html_indent_str(template_content, 12);
+        char *indented = __html_indent_str(template_content, 0);
         if (indented == NULL) {
                 return NULL;
         }
 
         // format with template
         size_t remaining = buf_size - offset;
-        if (has_modified) {
-                offset = snprintf(pos, remaining, indented, created_formatted, header->title,
-                                  header->subtitle, modified_formatted);
-        } else {
-                offset = snprintf(pos, remaining, indented, created_formatted, header->title,
-                                  header->subtitle);
-        }
+        offset =
+            snprintf(pos, remaining, indented, created_formatted, header->title, header->subtitle);
 
         // clean up
         free(indented);
@@ -274,6 +252,16 @@ static char *__html_create_content(page_header *header, char *page_content) {
         // close main content
         offset = snprintf(pos, buf_size - offset, "%s\n", "</div>");
         pos += offset;
+
+        // add updated date at the end if present
+        if (has_modified) {
+                offset = snprintf(pos, buf_size - offset,
+                                  "<div id=\"date-updated\">\n"
+                                  "<small>Last Updated on %s</small>\n"
+                                  "</div>\n",
+                                  modified_formatted);
+                pos += offset;
+        }
 
         return buf;
 }
