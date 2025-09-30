@@ -18,8 +18,6 @@
 #endif
 
 #define _SITE_INDEX_PATH "index.htm"
-#define _SITE_SOURCE_DIR "content"
-
 #define _SITE_ABOUT_PATH "about.htm"
 
 #define _SITE_EXCEMPT_LIST _SITE_ABOUT_PATH
@@ -265,6 +263,11 @@ int main(void) {
                 return res;
         }
 
+        if (html_init_templates() != 0) {
+                res = -1;
+                return res;
+        }
+
         if (ghist_times()) {
                 res = -1;
                 goto cleanup;
@@ -276,6 +279,9 @@ int main(void) {
         }
 
         while ((ftsentp = fts_read(ftsp)) != NULL) {
+                // only process files at the top level
+                if (ftsentp->fts_level > 1) continue;
+
                 // we only care for plain non-hidden __files__
                 if (ftsentp->fts_info != FTS_F) continue;
                 if (ftsentp->fts_name[0] == '.') continue;
@@ -338,6 +344,7 @@ cleanup:
         for (int i = 0; i < tracked_arr.len; i++) {
                 free(tracked_arr.files[i].file_path);
         }
+        html_cleanup_templates();
 
         return res;
 }

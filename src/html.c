@@ -4,10 +4,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <sys/stat.h>
+
 #include "error.h"
 #include "ghist.h"
 #include "html.h"
 #include "page.h"
+
+// global template content
+char *site_header = NULL;
+char *site_footer = NULL;
+char *site_hgroup = NULL;
+char *site_hgroup_updated = NULL;
 
 // compare by creation time
 static int __qsort_cb(const void *a, const void *b) {
@@ -20,22 +28,176 @@ static int __qsort_cb(const void *a, const void *b) {
         return 0;
 }
 
-// package content
-static char *html_create_content(page_header *header, char *page_content) {
-        char hgroup_fmt[] = "            <hgroup id=\"post-header\">\n"
-                            "                <span id=\"date-created\">%s</span>\n"
-                            "                <h1>%s</h1>\n"
-                            "                <p>%s</p>\n"
-                            "            </hgroup>\n";
+// indent
+static char *__html_indent_str(const char *str, int lvl) {
+        if (str == NULL || lvl < 0) {
+                return NULL;
+        }
 
-        char hgroup_with_updated_fmt[] = "            <hgroup id=\"post-header\">\n"
-                                         "                <span id=\"date-created\">%s</span>\n"
-                                         "                <h1>%s</h1>\n"
-                                         "                <p>%s</p>\n"
-                                         "                <span id=\"date-updated\">\n"
-                                         "                    <small>Last Updated on %s</small>\n"
-                                         "                </span>\n"
-                                         "            </hgroup>\n";
+        // count lines and total characters
+        int nchar = 0;
+        int nline = 0;
+        const char *p = str;
+        while (*p != '\0') {
+                if (*p == '\n') {
+                        nline++;
+                }
+                nchar++;
+                p++;
+        }
+
+        // allocate: original chars + (tabs per line * num lines) + null terminator
+        // we add lvl tabs at the start, plus lvl tabs after each newline
+        int new_len = nchar + (lvl * (nline + 1)) + 1;
+        char *indented = NULL;
+        if ((indented = malloc(new_len)) == NULL) {
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
+                return NULL;
+        }
+        char *dst = indented;
+
+        // initial indent
+        for (int i = 0; i < lvl; i++) {
+                *dst++ = '\t';
+        }
+
+        // copy with indentation after newlines
+        while (*str != '\0') {
+                *dst++ = *str;
+
+                if (*str == '\n' && *(str + 1) != '\0') { // Don't indent after final newline
+                        for (int i = 0; i < lvl; i++) {
+                                *dst++ = '\t';
+                        }
+                }
+                str++;
+        }
+
+        *dst = '\0';
+        return indented;
+}
+
+// shared template building blocks
+static int __html_parse_block(const char *block_path, page_block *block) {
+        FILE *block_file = NULL;
+        char *block_content = NULL;
+        int res = -1;
+
+        // open file
+        block_file = fopen(block_path, "r");
+        if (block_file == NULL) {
+                ERRORF(SITE_ERROR_FILE_OPEN_READ, block_path);
+                goto cleanup;
+        }
+
+        // get file size using fseek/ftell
+        if (fseek(block_file, 0, SEEK_END) != 0) {
+                ERRORF(SITE_ERROR_FILE_SEEK, block_path);
+                goto cleanup;
+        }
+
+        long file_size = ftell(block_file);
+        if (file_size < 0) {
+                ERRORF(SITE_ERROR_FILE_TELL, block_path);
+                goto cleanup;
+        }
+        rewind(block_file);
+
+        // allocate buffer
+        block_content = malloc(file_size + 1);
+        if (block_content == NULL) {
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
+                goto cleanup;
+        }
+
+        // read entire file
+        size_t bytes_read = fread(block_content, 1, file_size, block_file);
+        if (bytes_read != (size_t)file_size) {
+                ERRORF(SITE_ERROR_FILE_READ, block_path);
+                goto cleanup;
+        }
+
+        block_content[bytes_read] = '\0';
+
+        // success - transfer ownership to caller
+        block->content = block_content;
+        block->len = bytes_read;
+        block_content = NULL; // don't free on cleanup
+        res = 0;
+
+cleanup:
+        if (block_file) fclose(block_file);
+        if (block_content) free(block_content);
+
+        return res;
+}
+
+// initialize all templates
+int html_init_templates(void) {
+        page_block header_block = {0};
+        page_block footer_block = {0};
+        page_block hgroup_block = {0};
+        page_block hgroup_updated_block = {0};
+
+        // load header
+        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/header.htm", &header_block) != 0) {
+                goto error;
+        }
+
+        // load footer
+        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/footer.htm", &footer_block) != 0) {
+                goto error;
+        }
+
+        // load hgroup
+        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/hgroup.htm", &hgroup_block) != 0) {
+                goto error;
+        }
+
+        // load hgroup_updated
+        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/hgroup_updated.htm", &hgroup_updated_block) !=
+            0) {
+                goto error;
+        }
+
+        // transfer ownership
+        site_header = header_block.content;
+        site_footer = footer_block.content;
+        site_hgroup = hgroup_block.content;
+        site_hgroup_updated = hgroup_updated_block.content;
+
+        return 0;
+
+error:
+        if (header_block.content) free(header_block.content);
+        if (footer_block.content) free(footer_block.content);
+        if (hgroup_block.content) free(hgroup_block.content);
+        if (hgroup_updated_block.content) free(hgroup_updated_block.content);
+        return -1;
+}
+
+// cleanup templates
+void html_cleanup_templates(void) {
+        if (site_header) {
+                free(site_header);
+                site_header = NULL;
+        }
+        if (site_footer) {
+                free(site_footer);
+                site_footer = NULL;
+        }
+        if (site_hgroup) {
+                free(site_hgroup);
+                site_hgroup = NULL;
+        }
+        if (site_hgroup_updated) {
+                free(site_hgroup_updated);
+                site_hgroup_updated = NULL;
+        }
+}
+
+// package content
+static char *__html_create_content(page_header *header, char *page_content) {
 
         size_t buf_size = 24 * 1024;
         char *buf = NULL;
@@ -56,17 +218,43 @@ static char *html_create_content(page_header *header, char *page_content) {
         }
 
         // add header group (with or without modification date)
-        if (header->meta.modified) {
-                size_t modified_formatted_size = 256;
-                char modified_formatted[modified_formatted_size];
+        const char *template_content;
+        char modified_formatted[256];
+        int has_modified = header->meta.modified != 0;
+
+        if (has_modified) {
+                template_content = site_hgroup_updated;
                 ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
-                offset =
-                    snprintf(pos, buf_size - offset, hgroup_with_updated_fmt, created_formatted,
-                             header->title, header->subtitle, modified_formatted);
         } else {
-                offset = snprintf(pos, buf_size - offset, hgroup_fmt, created_formatted,
-                                  header->title, header->subtitle);
+                template_content = site_hgroup;
         }
+
+        // indent the content
+        char *indented = __html_indent_str(template_content, 12);
+        if (indented == NULL) {
+                return NULL;
+        }
+
+        // format with template
+        size_t remaining = buf_size - offset;
+        if (has_modified) {
+                offset = snprintf(pos, remaining, indented, created_formatted, header->title,
+                                  header->subtitle, modified_formatted);
+        } else {
+                offset = snprintf(pos, remaining, indented, created_formatted, header->title,
+                                  header->subtitle);
+        }
+
+        // clean up
+        free(indented);
+
+        // check for errors
+        if (offset < 0) {
+                ERROR(SITE_ERROR_FILE_WRITE);
+                free(buf);
+                return NULL;
+        }
+
         pos += offset;
 
         // separate main content from header group and post footer
@@ -120,15 +308,15 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "</head>\n"
             "<body>\n"
 	    "<div id=\"post\" class=\"content\">\n"
-	    _SITE_HEADER
+	    "%s"
             "<main>\n"
 	    "<div id=\"post-main\">\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, header->title, _SITE_FOOTNOTE_WEBCOMPONENT);
+            _SITE_STYLE_SHEET_PATH, header->title, _SITE_FOOTNOTE_WEBCOMPONENT, site_header);
 
         // write content
         char *html_content = NULL;
-        if ((html_content = html_create_content(header, plain_content)) == NULL) {
+        if ((html_content = __html_create_content(header, plain_content)) == NULL) {
                 fclose(dest_file);
                 return -1;
         }
@@ -152,10 +340,11 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 			                 "    <a href=\"#post\" title=\"Back to top\">↑ Top</a></div>\n"
 					 "</div>\n"
 					 "</main>\n"
-					 _SITE_FOOTER
+					 "%s"
                                          "</div>\n"
                                          "</body>\n"
-                                         "</html>\n");
+                                         "</html>\n",
+                                         site_footer);
         // clang-format on
 
         if (fprintf_ret < 0) {
@@ -196,10 +385,10 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
             "</head>\n"
             "<body>\n"
 	    "<div id=\"index\" class=\"content\">\n"
-	    _SITE_HEADER
+	    "%s"
             "<main>\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_FOOTNOTE_WEBCOMPONENT);
+            _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_FOOTNOTE_WEBCOMPONENT, site_header);
 
         // content
         char *dest_line = strtok((char *)page_content, "\n");
@@ -252,10 +441,11 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         // close <main>
         // clang-format off
         fprintf_ret = fprintf(dest_file, "</main>\n"
-					 _SITE_FOOTER
+					 "%s"
 					 "</div>\n"
                                          "</body>\n"
-                                         "</html>\n");
+                                         "</html>\n",
+                                         site_footer);
         // clang-format on
 
         if (fprintf_ret < 0) {

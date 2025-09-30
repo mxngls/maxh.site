@@ -40,7 +40,7 @@ static void __add_rename(char *old_path, char *new_path, git_time_t timestamp) {
 }
 
 static void __trace_rename(char *final_path, git_time_t *creation_time,
-                         git_time_t *modification_time) {
+                           git_time_t *modification_time) {
 
         char *current_path = strdup(final_path);
 
@@ -60,7 +60,7 @@ static void __trace_rename(char *final_path, git_time_t *creation_time,
 }
 
 static int __get_times_cb(const git_diff_delta *delta, __attribute__((unused)) float progress,
-                        void *payload) {
+                          void *payload) {
         if (!delta || !delta->new_file.path) return 0;
 
         // ensure array capacity

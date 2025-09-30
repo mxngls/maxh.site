@@ -11,6 +11,8 @@ typedef enum {
         SITE_ERROR_FILE_CREATE,
         SITE_ERROR_FILE_STAT,
         SITE_ERROR_FILE_SIZE_MISMATCH,
+        SITE_ERROR_FILE_SEEK,
+        SITE_ERROR_FILE_TELL,
         SITE_ERROR_UNEXPECTED_EOF,
 
         // memory allocation errors
@@ -35,20 +37,21 @@ const char *get_error_format(site_error_t error);
 
 #define ERROR(error_type)                                                                          \
         if (errno != 0) {                                                                          \
-                fprintf(stderr, "Error: %s (errno: %d, %s, line: %d)\n",                           \
-                        get_error_format(error_type), errno, strerror(errno), __LINE__);           \
+                fprintf(stderr, "Error: %s (errno: %d, %s, %s:%d)\n",                              \
+                        get_error_format(error_type), errno, strerror(errno), __FILE__, __LINE__); \
         } else {                                                                                   \
-                fprintf(stderr, "Error: %s (line: %d)\n", get_error_format(error_type), __LINE__); \
+                fprintf(stderr, "Error: %s (%s:%d)\n", get_error_format(error_type), __FILE__,     \
+                        __LINE__);                                                                 \
         }
 
 #define ERRORF(error_type, ...)                                                                    \
         if (errno != 0) {                                                                          \
                 fprintf(stderr, get_error_format(error_type), __VA_ARGS__);                        \
-                fprintf(stderr, "Error: (errno: %d, %s, line: %d)\n", errno, strerror(errno),      \
+                fprintf(stderr, " (errno: %d, %s, %s:%d)\n", errno, strerror(errno), __FILE__,     \
                         __LINE__);                                                                 \
         } else {                                                                                   \
                 fprintf(stderr, get_error_format(error_type), __VA_ARGS__);                        \
-                fprintf(stderr, "Error: (line: %d)\n", __LINE__);                                  \
+                fprintf(stderr, " (%s:%d)\n", __FILE__, __LINE__);                                 \
         }
 
 #endif // ERROR_H
