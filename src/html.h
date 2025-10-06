@@ -11,7 +11,7 @@
 
 #define _SITE_HTML_FONT ""
 
-#define _SITE_FOOTNOTE_WEBCOMPONENT "<script src=\"footnotes.js\"></script>"
+#define _SITE_SCRIPT "<script src=\"script.js\" defer></script>"
 
 typedef struct {
         char *content;

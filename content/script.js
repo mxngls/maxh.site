@@ -3,8 +3,8 @@ class Footnote extends HTMLElement {
 
 	constructor() {
 		super();
-		Footnote.footnoteCounter++;
-		this.footnoteNumber = Footnote.footnoteCounter;
+
+		this.footnoteNumber = ++Footnote.footnoteCounter;
 	}
 
 	connectedCallback() {
@@ -25,18 +25,13 @@ class Footnote extends HTMLElement {
 	processContent() {
 		const contentContainer = document.querySelector("main");
 		if (!contentContainer) {
-			console.error(
-				"FootnoteRef: Content container to append footnotes to not found",
-			);
+			console.error("FootnoteRef: Content container to append footnotes to not found");
 			return;
 		}
 
 		const footnoteContainer = document.getElementById("footnotes");
 		if (!footnoteContainer || !this.footnoteContainer) {
-			this.footnoteContainer = this.initContainer(
-				contentContainer,
-				footnoteContainer,
-			);
+			this.footnoteContainer = this.initContainer(contentContainer, footnoteContainer);
 		}
 		const content = this.innerHTML.trim();
 
@@ -72,7 +67,7 @@ class Footnote extends HTMLElement {
 
 		li.id = `footnote-${this.footnoteNumber}`;
 		p.innerHTML = content;
-		a.classList.add('footnote-back');
+		a.classList.add("footnote-back");
 		a.href = `#footnote-ref-${this.footnoteNumber}`;
 		a.innerText = "↩";
 
