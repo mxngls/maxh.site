@@ -5,8 +5,11 @@
 	--color-gray4: #646464;
 	--color-gray5: #5a5a5a;
 
-	--color-teal1: #cfb540;
-	--color-teal2: #9f8618;
+	--color-fg: var(--color-gray1);
+	--color-bg: var(--color-gray5);
+
+	--color-link: var(--color-fg);
+	--color-link-active: var(--color-fg);
 }
 
 html {
@@ -28,8 +31,8 @@ body {
 	padding: 0;
 	line-height: 1.8;
 
-	background-color: var(--color-gray1);
-	color: var(--color-gray5);
+	background-color: var(--color-bg);
+	color: var(--color-fg);
 
 	/* font-family: "Source Sans 3", sans-serif; */
 	font-family: sans-serif;
@@ -45,14 +48,14 @@ a:visited {
 	text-decoration: underline;
 	text-decoration-thickness: 1.5px;
 	text-underline-offset: 6px;
-	text-decoration-color: var(--color-teal2);
-	color: var(--color-teal2);
+	text-decoration-color: var(--color-link);
+	color: var(--color-link);
 }
 
 a:hover,
 a:active {
-	text-decoration-color: var(--color-teal1);
-	color: var(--color-teal1);
+	text-decoration-color: var(--color-link);
+	color: var(--color-link);
 }
 
 
@@ -76,7 +79,7 @@ header {
 	margin-bottom: 3em;
 }
 
-header > div {
+header>div {
 	display: flex;
 	justify-content: space-between;
 	align-items: flex-start;
@@ -218,17 +221,9 @@ ul#post-list a {
 ul#post-list .title {
 	font-weight: bold;
 
-	color: var(--color-teal2);
-
 	text-decoration: underline;
 	text-decoration-thickness: 1.5px;
 	text-underline-offset: 6px;
-	text-decoration-color: var(--color-teal2);
-}
-
-ul#post-list a:hover .title {
-	color: var(--color-teal1);
-	text-decoration-color: var(--color-teal1);
 }
 
 ul#post-list .date {
@@ -237,20 +232,20 @@ ul#post-list .date {
 	opacity: 0.7;
 	white-space: nowrap;
 
-	color: var(--color-gray4);
+	color: var(--color-gray2);
 
 	font-size: 95%;
 	font-weight: bolder;
 }
 
 ul#post-list .subtitle {
-	color: var(--color-gray5);
+	color: var(--color-gray2);
 	margin-top: 0.2em;
 }
 
 #date-created,
 #date-updated {
-	color: var(--color-gray3);
+	color: var(--color-gray2);
 	opacity: 0.7;
 	font-weight: 600;
 }
