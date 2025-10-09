@@ -12,8 +12,7 @@
 #include "page.h"
 
 // global template content
-char *site_header = NULL;
-char *site_footer = NULL;
+char *site_menu = NULL;
 char *site_hgroup = NULL;
 
 // compare by creation time
@@ -133,17 +132,11 @@ cleanup:
 
 // initialize all templates
 int html_init_templates(void) {
-        page_block header_block = {0};
-        page_block footer_block = {0};
+        page_block menu_block = {0};
         page_block hgroup_block = {0};
 
-        // load header
-        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/header.htm", &header_block) != 0) {
-                goto error;
-        }
-
-        // load footer
-        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/footer.htm", &footer_block) != 0) {
+        // load menu
+        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/menu.htm", &menu_block) != 0) {
                 goto error;
         }
 
@@ -153,28 +146,22 @@ int html_init_templates(void) {
         }
 
         // transfer ownership
-        site_header = header_block.content;
-        site_footer = footer_block.content;
+        site_menu = menu_block.content;
         site_hgroup = hgroup_block.content;
 
         return 0;
 
 error:
-        if (header_block.content) free(header_block.content);
-        if (footer_block.content) free(footer_block.content);
+        if (menu_block.content) free(menu_block.content);
         if (hgroup_block.content) free(hgroup_block.content);
         return -1;
 }
 
 // cleanup templates
 void html_cleanup_templates(void) {
-        if (site_header) {
-                free(site_header);
-                site_header = NULL;
-        }
-        if (site_footer) {
-                free(site_footer);
-                site_footer = NULL;
+        if (site_menu) {
+                free(site_menu);
+                site_menu = NULL;
         }
         if (site_hgroup) {
                 free(site_hgroup);
@@ -235,7 +222,7 @@ static char *__html_create_content(page_header *header, char *page_content) {
 
         pos += offset;
 
-        // separate main content from header group and post footer
+        // separate main content from header group
         offset = snprintf(pos, buf_size - offset, "%s\n", "<div id=\"post-body\">");
         pos += offset;
 
@@ -296,11 +283,11 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "</head>\n"
             "<body>\n"
 	    "<div id=\"post\" class=\"content\">\n"
-	    "%s"
+	    "%s\n"
             "<main>\n"
 	    "<div id=\"post-main\">\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, header->title, _SITE_SCRIPT, site_header);
+            _SITE_STYLE_SHEET_PATH, header->title, _SITE_SCRIPT, site_menu);
 
         // write content
         char *html_content = NULL;
@@ -324,15 +311,10 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 
         // close html
         // clang-format off
-        fprintf_ret = fprintf(dest_file, "<div id=\"back-to-top\">"
-			                 "    <a href=\"#post\" title=\"Back to top\">↑ Top</a></div>\n"
-					 "</div>\n"
-					 "</main>\n"
-					 "%s"
+        fprintf_ret = fprintf(dest_file, "</main>\n"
                                          "</div>\n"
                                          "</body>\n"
-                                         "</html>\n",
-                                         site_footer);
+                                         "</html>\n");
         // clang-format on
 
         if (fprintf_ret < 0) {
@@ -373,10 +355,10 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
             "</head>\n"
             "<body>\n"
 	    "<div id=\"index\" class=\"content\">\n"
-	    "%s"
+	    "%s\n"
             "<main>\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_SCRIPT, site_header);
+            _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_SCRIPT, site_menu);
 
         // content
         char *dest_line = strtok((char *)page_content, "\n");
@@ -431,11 +413,9 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         // close <main>
         // clang-format off
         fprintf_ret = fprintf(dest_file, "</main>\n"
-					 "%s"
 					 "</div>\n"
                                          "</body>\n"
-                                         "</html>\n",
-                                         site_footer);
+                                         "</html>\n");
         // clang-format on
 
         if (fprintf_ret < 0) {
