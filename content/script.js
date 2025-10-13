@@ -153,8 +153,16 @@ class SiteMenu extends HTMLElement {
 				${this.content.map((li) => li.outerHTML).join("")}
 		    </menu>
 		</div>
-    	<button class="site-menu-item">${label}</button>
-    	<div class="background"></div>`;
+		<div class="site-menu-control-wrap">
+			<button
+				id="site-menu-control-back-btn"
+				class="site-menu-control"
+				onclick="window.location.href='/'"
+			>← Back</button>
+			<button id="site-menu-main-toggle" class="site-menu-item">${label}</button>
+		</div>
+		<div class="background"></div>
+		`;
 		} else {
 			this.innerHTML = `<div class="wrapper hidden">
 		    <ul>
@@ -169,7 +177,9 @@ class SiteMenu extends HTMLElement {
 
 	setupEventListeners() {
 		// `:scope` necessary to include the node which is currently toggled
-		const button = this.querySelector(":scope > button");
+		const button = this.isTop
+			? this.querySelector(":scope > .site-menu-control-wrap > button#site-menu-main-toggle")
+			: this.querySelector(":scope > button");
 		button.addEventListener("click", () => this.toggleSelf());
 
 		if (this.isTop) {
@@ -182,9 +192,7 @@ class SiteMenu extends HTMLElement {
 
 	disableBackButtonIfAtRoot() {
 		const isAtRoot = window.location.pathname === "/";
-		const backButton = Array.from(this.querySelectorAll("button.site-menu-item")).find((btn) =>
-			btn.textContent.includes("← Back"),
-		);
+		const backButton = document.getElementById("site-menu-control-back-btn");
 
 		if (backButton && isAtRoot) {
 			backButton.disabled = true;

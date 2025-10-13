@@ -1,12 +1,26 @@
 :root {
+	/* Colors */
 	--color-gray1: #dddddd;
 	--color-gray2: #b1b1b0;
 	--color-gray5: #5a5a5a;
-
 	--color-fg: var(--color-gray1);
 	--color-bg: var(--color-gray5);
-
 	--color-link: var(--color-fg);
+
+	/* Menu dimensions */
+	--menu-item-width: 115px;
+	--menu-border-width: 1px;
+
+	/* Menu control spacing */
+	--menu-control-padding-y: 0.6rem;
+	--control-padding-x: 1rem;
+
+	/* Menu margins */
+	--menu-margin-x: 0rem;
+	--menu-margin-y: 0rem;
+
+	/* Calculated values */
+	--menu-bottom-offset: 3.5rem;
 }
 
 html {
@@ -29,7 +43,7 @@ body {
 
 	font-weight: 400;
 	font-style: normal;
-	font-size: 16px;
+	font-size: 18px;
 }
 
 a,
@@ -51,71 +65,88 @@ main {
 site-menu ul,
 site-menu menu {
 	list-style: none;
+
 	margin: 0;
 	padding: 0;
+
 	display: flex;
-	flex-wrap: wrap;
 	flex-direction: column;
 }
 
 site-menu li {
-	box-sizing: border-box;
-	display: flex;
-	margin-top: -1px;
-}
-
-site-menu .wrapper {
-	width: 100%;
+	margin-bottom: calc(-1 * var(--menu-border-width));
 }
 
 site-menu .wrapper.hidden {
 	display: none;
 }
 
-site-menu>button {
+site-menu .wrapper:not(.hidden) {
+	margin-right: var(--menu-margin-x);
+	margin-bottom: var(--menu-margin-y);
+}
+
+site-menu button {
+	font-family: inherit;
+	font-size: inherit;
 	font-weight: 700;
 }
 
+
 site-menu button:disabled {
-	opacity: 0.8;
+	opacity: 0.6;
 }
 
 /* Level 1 - Top menu */
 site-menu[data-level="1"] {
 	position: fixed;
 	bottom: 0;
-	left: 0;
-	width: 100%;
+	right: 0;
 
-	margin: 1.2rem 0.6rem;
 	z-index: 100;
 }
 
 site-menu[data-level="1"]>.wrapper {
 	position: relative;
+	bottom: var(--menu-bottom-offset);
+
+	margin-right: calc(var(--menu-margin-x) + var(--menu-border-width));
 }
 
-site-menu[data-level="1"]>.wrapper>menu>li {
-	width: 100%;
+/* Menu control wrapper */
+.site-menu-control-wrap {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+
+	right: var(--menu-margin-x);
+	bottom: var(--menu-margin-y);
+
+	height: var(--menu-bottom-offset);
+
+	display: flex;
+	flex-direction: row;
+
+	z-index: 110;
 }
 
-site-menu[data-level="1"]>.site-menu-item {
-	width: 100px;
-	min-width: 100px;
-}
+/* Menu control buttons (MENU, Back, etc.) */
+.site-menu-control-wrap>button {
+	padding: var(--menu-control-padding-y) var(--control-padding-x);
 
-site-menu[data-level="1"]>button.site-menu-item:first-of-type {
-	height: calc(5.5rem - 2 * 1.2rem);
-	width: fit-content;
-	max-width: fit-content;
+	background-color: var(--color-bg);
+	color: var(--color-fg);
 
-	box-sizing: border-box;
-
-	margin-top: -1px;
-	padding: calc(0.6rem - 1px);
-
+	border: var(--menu-border-width) solid var(--color-fg);
 	border-radius: 60px;
-	text-align: center;
+
+	height: var(--menu-bottom-offset);
+
+	white-space: nowrap;
+}
+
+.site-menu-control-wrap>.site-menu-control {
+	display: none;
 }
 
 /* Nested menus - all levels except top */
@@ -123,21 +154,18 @@ site-menu:not([data-level="1"]) {
 	position: relative;
 }
 
-site-menu:not([data-level="1"]) li {
-	width: fit-content;
-	margin-left: -1px;
-}
-
 site-menu:not([data-level="1"]) .wrapper {
 	position: fixed;
-	left: calc(0.6rem + ((var(--level) - 1) * 120px));
-	bottom: calc(5.5rem - 1.2rem);
+	right: calc((var(--level) - 1) * var(--menu-item-width));
+	bottom: var(--menu-bottom-offset);
 
 	max-height: calc(100vh - 4rem);
 	width: fit-content;
-	min-width: 120px;
+	min-width: var(--menu-item-width);
 
 	pointer-events: auto;
+
+	box-sizing: border-box;
 
 	z-index: 110;
 }
@@ -153,11 +181,6 @@ site-menu:not([data-level="1"])>.wrapper:not(.hidden)~button {
 	white-space: nowrap;
 }
 
-site-menu:not([data-level="1"])>.wrapper:not(.hidden)~button::after {
-	content: " →";
-	display: inline;
-}
-
 /* Highlight children of deepest active menu only */
 site-menu.deepest>.wrapper>ul>li>.site-menu-item {
 	background-color: var(--color-fg);
@@ -169,23 +192,29 @@ site-menu.deepest>.wrapper>ul>li>a.site-menu-item {
 	text-decoration-color: var(--color-bg);
 }
 
+@media (min-width: 40rem) {
+	:root {
+		/* Menu margins */
+		--menu-margin-x: 2rem;
+		--menu-margin-y: 2rem;
+	}
+}
+
+
 /* Menu items - all levels */
 .site-menu-item {
-	width: 120px;
-	min-width: 120px;
-	padding: 1rem 1.5rem 1rem 1.2rem;
+	width: var(--menu-item-width);
+	min-width: var(--menu-item-width);
+	padding: 1rem;
 
 	background-color: var(--color-bg);
 	color: var(--color-fg);
 
-	border: 1px solid var(--color-fg);
+	border: var(--menu-border-width) solid var(--color-fg);
 	border-radius: 20px;
 
 	line-height: inherit;
-	font-family: inherit;
-	font-size: inherit;
-
-	text-align: left;
+	text-align: center;
 
 	box-sizing: border-box;
 	display: block;
@@ -202,8 +231,6 @@ site-menu[data-level="1"]>.background {
 
 	width: 100vw;
 	height: 100vh;
-	height: 100dvh;
-	/* dynamic viewport height - accounts for mobile browser chrome */
 
 	padding: 0;
 	margin: 0;
@@ -286,10 +313,26 @@ site-menu[data-level="1"] {
 		padding-bottom: 6rem;
 	}
 
-	site-menu[data-level="1"]:has(> button.site-menu-item:hover),
-	site-menu[data-level="1"]:has(> .wrapper:hover),
-	site-menu[data-level="1"]:has(> .background:hover) {
+	/* Full opacity when menu is open (all devices) */
+	site-menu[data-level="1"]:has(> .wrapper:not(.hidden)),
+	site-menu[data-level="1"]:has(> .background.active) {
 		opacity: 1;
+	}
+
+	/* Show top menu controls when menu is open */
+	site-menu[data-level="1"]:has(> .wrapper:not(.hidden)) .site-menu-control-wrap>.site-menu-control,
+	site-menu[data-level="1"]:has(> .background.active) .site-menu-control-wrap>.site-menu-control {
+		display: block;
+	}
+
+	/* Full opacity on hover (hover-capable devices only) */
+	@media (hover: hover) {
+
+		site-menu[data-level="1"]:has(> .site-menu-control-wrap:hover),
+		site-menu[data-level="1"]:has(> .wrapper:hover),
+		site-menu[data-level="1"]:has(> .background:hover) {
+			opacity: 1;
+		}
 	}
 }
 
@@ -320,8 +363,8 @@ site-menu[data-level="1"] {
 }
 
 /* Index */
-#index section h1 {
-	margin-top: revert;
+#index section:not(:last-of-type) {
+	margin-bottom: 1.5rem;
 }
 
 /* Post List */
@@ -378,7 +421,6 @@ ul#post-list .subtitle {
 
 #post-body {
 	flex: 1;
-	/* margin-bottom: 2em; */
 }
 
 #date-created,
