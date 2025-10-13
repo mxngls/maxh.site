@@ -16,8 +16,8 @@
 	--control-padding-x: 1rem;
 
 	/* Menu margins */
-	--menu-margin-x: 0rem;
-	--menu-margin-y: 0rem;
+	--menu-margin-x: 0.5rem;
+	--menu-margin-y: 0.5rem;
 
 	/* Calculated values */
 	--menu-bottom-offset: 3.5rem;
@@ -29,6 +29,8 @@ html {
 }
 
 body {
+	position: relative;
+
 	min-height: 100%;
 
 	margin: 0 auto;
@@ -224,31 +226,33 @@ site-menu.deepest>.wrapper>ul>li>a.site-menu-item {
 }
 
 /* Background overlay - Level 1 only */
-site-menu[data-level="1"]>.background {
-	position: fixed;
+#background {
+	position: absolute;
 	top: 0;
 	left: 0;
 
-	width: 100vw;
-	height: 100vh;
+	width: 100%;
+	height: 100%;
 
-	padding: 0;
-	margin: 0;
+	overflow-y: auto;
+	background-color: var(--color-bg);
+	background-attachment: fixed;
+	background-size: cover;
 
-	background: gray;
 	opacity: 0;
 	z-index: -1;
 
 	pointer-events: none;
 }
 
-site-menu[data-level="1"]>.background.active {
-	background-color: #111111;
+#background.active {
 	opacity: 0.6;
 	pointer-events: auto;
 	z-index: 100;
 
 	transition: opacity 0.2s linear;
+
+	background-color: black;
 }
 
 /* Animation */
@@ -315,13 +319,13 @@ site-menu[data-level="1"] {
 
 	/* Full opacity when menu is open (all devices) */
 	site-menu[data-level="1"]:has(> .wrapper:not(.hidden)),
-	site-menu[data-level="1"]:has(> .background.active) {
+	site-menu[data-level="1"]:has(#background.active) {
 		opacity: 1;
 	}
 
 	/* Show top menu controls when menu is open */
 	site-menu[data-level="1"]:has(> .wrapper:not(.hidden)) .site-menu-control-wrap>.site-menu-control,
-	site-menu[data-level="1"]:has(> .background.active) .site-menu-control-wrap>.site-menu-control {
+	site-menu[data-level="1"]:has(#background.active) .site-menu-control-wrap>.site-menu-control {
 		display: block;
 	}
 
@@ -330,7 +334,7 @@ site-menu[data-level="1"] {
 
 		site-menu[data-level="1"]:has(> .site-menu-control-wrap:hover),
 		site-menu[data-level="1"]:has(> .wrapper:hover),
-		site-menu[data-level="1"]:has(> .background:hover) {
+		site-menu[data-level="1"]:has(#background:hover) {
 			opacity: 1;
 		}
 	}

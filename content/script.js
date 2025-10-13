@@ -161,7 +161,6 @@ class SiteMenu extends HTMLElement {
 			>← Back</button>
 			<button id="site-menu-main-toggle" class="site-menu-item">${label}</button>
 		</div>
-		<div class="background"></div>
 		`;
 		} else {
 			this.innerHTML = `<div class="wrapper hidden">
@@ -183,7 +182,7 @@ class SiteMenu extends HTMLElement {
 		button.addEventListener("click", () => this.toggleSelf());
 
 		if (this.isTop) {
-			const background = this.querySelector("#top-menu .background");
+			const background = document.getElementById("background");
 			background.addEventListener("click", () => this.toggleBackground());
 
 			this.disableBackButtonIfAtRoot();
@@ -207,7 +206,7 @@ class SiteMenu extends HTMLElement {
 				w.classList.add("hidden"),
 			);
 			wrapper.classList.toggle("hidden");
-			document.querySelector(".background").classList.toggle("active");
+			document.getElementById("background").classList.toggle("active");
 		} else {
 			document
 				.getElementById("top-menu")
@@ -253,7 +252,7 @@ class SiteMenu extends HTMLElement {
 			.forEach((w) => w.classList.add("hidden"));
 
 		this.querySelector(":scope > .wrapper").classList.add("hidden");
-		document.querySelector(".background").classList.remove("active");
+		document.getElementById("background").classList.remove("active");
 
 		this.updateDeepestMenu();
 	}
