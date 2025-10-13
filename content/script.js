@@ -133,6 +133,7 @@ class SiteMenu extends HTMLElement {
 	}
 	connectedCallback() {
 		const label = this.getAttribute("label");
+		console.log(label);
 
 		if (!label) {
 			throw new Error(`${SITE_MENU_TAGNAME}: "label" attribute is required`);

@@ -1,23 +1,27 @@
 :root {
 	/* Colors */
-	--color-gray1: #dddddd;
-	--color-gray2: #b1b1b0;
-	--color-gray5: #5a5a5a;
-	--color-fg: var(--color-gray1);
-	--color-bg: var(--color-gray5);
-	--color-link: var(--color-fg);
+	--color-black: #4c4c4c;
+	--color-gray1: #727272;
+	--color-gray2: #ededed;
+	--color-green1: #4e8949;
+	--color-green2: #3b6837;
+	--color-fg: var(--color-black);
+	--color-bg: var(--color-gray2);
+	--color-link: var(--color-green1);
 
-	/* Menu dimensions */
+	--content-border: 1px solid var(--color-gray1);
+
+	/* Site Menu */
 	--menu-item-width: 115px;
 	--menu-border-width: 1px;
-
-	/* Menu control spacing */
 	--menu-control-padding-y: 0.6rem;
 	--control-padding-x: 1rem;
-
-	/* Menu margins */
 	--menu-margin-x: 0.5rem;
 	--menu-margin-y: 0.5rem;
+	--menu-item-color: #96accf;
+	--menu-item-bg-color: #e7ecf4;
+	--menu-item-active-color: #ef865b;
+	--menu-item-active-bg-color: #f9dacb;
 
 	/* Calculated values */
 	--menu-bottom-offset: 3.5rem;
@@ -30,31 +34,38 @@ html {
 
 body {
 	position: relative;
-
 	min-height: 100%;
+	min-height: -webkit-fill-available;
 
 	margin: 0 auto;
 	padding: 0;
 
-	line-height: 1.8;
+	line-height: 1.6em;
 
 	background-color: var(--color-bg);
 	color: var(--color-fg);
 
 	font-family: Inter, Roboto, 'Helvetica Neue', 'Arial Nova', 'Nimbus Sans', Arial, sans-serif;
-
-	font-weight: 400;
-	font-style: normal;
-	font-size: 18px;
+	font-family: InterVariable, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+	font-size: 1.05em;
 }
 
 a,
 a:visited {
+	color: var(--color-link);
+
 	text-decoration: underline;
 	text-decoration-thickness: 1.5px;
-	text-underline-offset: 6px;
+	text-underline-offset: 2px;
 	text-decoration-color: var(--color-link);
-	color: var(--color-link);
+
+	font-weight: 500;
+	padding: 0.1rem;
+}
+
+a.site-menu-item,
+a.site-menu-item:visited {
+	text-decoration-thickness: 2px;
 }
 
 main {
@@ -84,7 +95,7 @@ site-menu .wrapper.hidden {
 }
 
 site-menu .wrapper:not(.hidden) {
-	margin-right: var(--menu-margin-x);
+	margin-right: calc(var(--menu-margin-x) - var(--menu-border-width));
 	margin-bottom: var(--menu-margin-y);
 }
 
@@ -112,7 +123,7 @@ site-menu[data-level="1"]>.wrapper {
 	position: relative;
 	bottom: var(--menu-bottom-offset);
 
-	margin-right: calc(var(--menu-margin-x) + var(--menu-border-width));
+	margin-right: calc(var(--menu-margin-x) - var(--menu-border-width));
 }
 
 /* Menu control wrapper */
@@ -136,11 +147,10 @@ site-menu[data-level="1"]>.wrapper {
 .site-menu-control-wrap>button {
 	padding: var(--menu-control-padding-y) var(--control-padding-x);
 
-	background-color: var(--color-bg);
+	background-color: transparent;
 	color: var(--color-fg);
 
-	border: var(--menu-border-width) solid var(--color-fg);
-	border-radius: 60px;
+	border: none;
 
 	height: var(--menu-bottom-offset);
 
@@ -174,8 +184,9 @@ site-menu:not([data-level="1"]) .wrapper {
 
 /* Highlight all active nested menu labels in the chain */
 site-menu:not([data-level="1"])>.wrapper:not(.hidden)~button {
-	background-color: var(--color-fg);
-	color: var(--color-bg);
+	background-color: var(--menu-item-active-bg-color);
+	color: var(--menu-item-active-color);
+	border-color: var(--menu-item-active-color);
 }
 
 /* Add arrow indicator when nested menu is open */
@@ -185,13 +196,14 @@ site-menu:not([data-level="1"])>.wrapper:not(.hidden)~button {
 
 /* Highlight children of deepest active menu only */
 site-menu.deepest>.wrapper>ul>li>.site-menu-item {
-	background-color: var(--color-fg);
-	color: var(--color-bg);
+	background-color: var(--menu-item-active-bg-color);
+	color: var(--menu-item-active-color);
+	border-color: var(--menu-item-active-color);
 }
 
 /* Highlight link underlines of deepest active menu only */
 site-menu.deepest>.wrapper>ul>li>a.site-menu-item {
-	text-decoration-color: var(--color-bg);
+	text-decoration-color: var(--menu-item-active-color);
 }
 
 @media (min-width: 40rem) {
@@ -209,20 +221,29 @@ site-menu.deepest>.wrapper>ul>li>a.site-menu-item {
 	min-width: var(--menu-item-width);
 	padding: 1rem;
 
-	background-color: var(--color-bg);
-	color: var(--color-fg);
+	/* background-color: var(--color-bg); */
+	/* color: var(--color-fg); */
 
-	border: var(--menu-border-width) solid var(--color-fg);
+	background-color: var(--menu-item-bg-color);
+	color: var(--menu-item-color);
+	border: var(--menu-border-width) solid var(--menu-item-color);
+
 	border-radius: 20px;
 
 	line-height: inherit;
-	text-align: center;
+	text-align: left;
+	white-space: nowrap;
 
 	box-sizing: border-box;
 	display: block;
 
 	position: relative;
 	z-index: 110;
+}
+
+a.site-menu-item {
+	color: var(--menu-item-color);
+	text-decoration-color: var(--menu-item-color);
 }
 
 /* Background overlay - Level 1 only */
@@ -285,8 +306,10 @@ h1 {
 	margin: 0;
 }
 
-hgroup>h1 {
-	line-height: 1.4;
+hgroup>h1,
+section>h1 {
+	line-height: initial;
+	margin-bottom: 1rem;
 }
 
 pre {
@@ -302,11 +325,21 @@ site-menu[data-level="1"] {
 	opacity: 0.7;
 }
 
+span:has(>.logo) .logo {
+	display: inline-block;
+	vertical-align: baseline;
+	margin-bottom: -0.2em;
+}
+
 /* Enhanced styles for browsers with :has() support */
 @supports selector(:has(> *)) {
 	span:has(>.logo) {
 		border-bottom: 1.5px solid var(--color-link);
 		padding-bottom: 3px;
+	}
+
+	a.site-menu-item>span:has(>.logo) {
+		border-bottom: 1.5px solid var(--menu-ite-color);
 	}
 
 	a:has(>span>.logo) {
@@ -324,9 +357,12 @@ site-menu[data-level="1"] {
 	}
 
 	/* Show top menu controls when menu is open */
-	site-menu[data-level="1"]:has(> .wrapper:not(.hidden)) .site-menu-control-wrap>.site-menu-control,
-	site-menu[data-level="1"]:has(#background.active) .site-menu-control-wrap>.site-menu-control {
+	site-menu[data-level="1"]:has(> .wrapper:not(.hidden)) .site-menu-control-wrap>button,
+	site-menu[data-level="1"]:has(#background.active) .site-menu-control-wrap>button {
 		display: block;
+		color: white;
+		text-align: left;
+
 	}
 
 	/* Full opacity on hover (hover-capable devices only) */
@@ -342,27 +378,21 @@ site-menu[data-level="1"] {
 
 /* Layout */
 .content {
-	height: calc(100% - 3rem);
+	height: calc(100% - 4rem);
 	max-width: 700px;
-
-	flex: 1;
 
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 
 	margin: 0 auto;
-	padding: 2rem 1rem 4rem;
-}
-
-#index.content {
-	padding-bottom: 2rem;
+	padding: 1rem 1rem 4rem;
 }
 
 @media (min-width: 40rem) {
 	.content {
-		height: calc(100% - 4rem);
-		padding: 3rem 1.5rem 6rem;
+		height: calc(100% - 9rem);
+		padding: 3rem 2rem 6rem;
 	}
 }
 
@@ -386,10 +416,12 @@ ul#post-list .post-item-header {
 	justify-content: space-between;
 	align-items: baseline;
 	gap: 1rem;
+	line-height: 1.2;
 }
 
 ul#post-list a {
 	text-decoration: none;
+	color: var(--color-link);
 }
 
 ul#post-list .title {
@@ -401,15 +433,16 @@ ul#post-list .date {
 
 	white-space: nowrap;
 
-	color: var(--color-gray2);
+	color: var(--color-gray1);
 
 	font-size: 95%;
 	font-weight: bolder;
 }
 
 ul#post-list .subtitle {
-	color: var(--color-gray2);
-	margin-top: -4px;
+	color: var(--color-gray1);
+	margin-top: 4px;
+	line-height: 1.4;
 }
 
 /* Post */
@@ -420,7 +453,7 @@ ul#post-list .subtitle {
 #post-header .subtitle {
 	margin-top: 0.2em;
 	line-height: 1.6;
-	color: var(--color-gray2);
+	color: var(--color-gray1);
 }
 
 #post-body {
@@ -429,7 +462,7 @@ ul#post-list .subtitle {
 
 #date-created,
 #date-updated {
-	color: var(--color-gray2);
+	color: var(--color-gray1);
 	font-weight: 600;
 }
 
@@ -447,7 +480,7 @@ ul#post-list .subtitle {
 	margin-top: 1.5em;
 	padding: 1.5em 0;
 
-	border-top: 1px solid var(--color-gray2);
+	border-top: 1px solid var(--color-black);
 }
 
 #footnotes ol {
