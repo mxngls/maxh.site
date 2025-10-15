@@ -199,6 +199,12 @@ static char *__html_create_content(page_header *header, char *page_content) {
                 ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
         }
 
+        // Simple hash of path for view transition
+        unsigned int hash = 5381;
+        for (const char *p = header->meta.path; *p; p++) {
+                hash = hash * 33 + (unsigned char)*p;
+        }
+
         // indent the content
         char *indented = __html_indent_str(template_content, 0);
         if (indented == NULL) {
@@ -208,7 +214,7 @@ static char *__html_create_content(page_header *header, char *page_content) {
         // format with template
         size_t remaining = buf_size - offset;
         offset =
-            snprintf(pos, remaining, indented, created_formatted, header->title, header->subtitle);
+            snprintf(pos, remaining, indented, hash, header->title, hash, created_formatted, hash, header->subtitle);
 
         // clean up
         free(indented);
@@ -398,23 +404,30 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                 size_t created_formatted_size = 256;
                 char created_formatted[created_formatted_size];
                 if (header_arr->elems[i]->meta.created) {
-                        ghist_format_ts("%Y&#8209;%m&#8209;%d", created_formatted,
+                        ghist_format_ts("%d %b, %Y", created_formatted,
                                         header_arr->elems[i]->meta.created);
                 } else {
                         snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
                 }
+
+                // Simple hash of path for view transition
+                unsigned int hash = 5381;
+                for (const char *p = header_arr->elems[i]->meta.path; *p; p++) {
+                        hash = hash * 33 + (unsigned char)*p;
+                }
+
                 fprintf_ret = fprintf(dest_file,
                                       "<li>\n"
                                       "<div class=\"post-item-header\">\n"
                                       "<a href=\"%s\">\n"
-                                      "<span class=\"title\">%s</span>\n"
+                                      "<span class=\"title\" style=\"view-transition-name: title-%u\">%s</span>\n"
                                       "</a>\n"
-                                      "<span class=\"date\">%s</span>\n"
+                                      "<span class=\"date\" style=\"view-transition-name: date-%u\">%s</span>\n"
                                       "</div>\n"
-                                      "<div class=\"subtitle\">%s</div>\n"
+                                      "<div class=\"subtitle\" style=\"view-transition-name: subtitle-%u\">%s</div>\n"
                                       "</li>\n",
-                                      header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
-                                      created_formatted, header_arr->elems[i]->subtitle);
+                                      header_arr->elems[i]->meta.path, hash, header_arr->elems[i]->title,
+                                      hash, created_formatted, hash, header_arr->elems[i]->subtitle);
         }
 
         fprintf_ret = fprintf(dest_file, "</ul>\n"

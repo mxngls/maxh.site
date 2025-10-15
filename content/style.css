@@ -60,7 +60,6 @@ a:visited {
 	text-decoration-color: var(--color-link);
 
 	font-weight: 500;
-	padding: 0.1rem;
 }
 
 a.site-menu-item,
@@ -220,9 +219,6 @@ site-menu.deepest>.wrapper>ul>li>a.site-menu-item {
 	width: var(--menu-item-width);
 	min-width: var(--menu-item-width);
 	padding: 1rem;
-
-	/* background-color: var(--color-bg); */
-	/* color: var(--color-fg); */
 
 	background-color: var(--menu-item-bg-color);
 	color: var(--menu-item-color);
@@ -450,6 +446,27 @@ ul#post-list .subtitle {
 	margin-bottom: 2em;
 }
 
+#post-header .post-header-top {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	line-height: 1.2;
+}
+
+#post-header h1 {
+	color: var(--color-link);
+	margin: 0;
+}
+
+@media (min-width: 40rem) {
+	#post-header .post-header-top {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: 1rem;
+	}
+}
+
 #post-header .subtitle {
 	margin-top: 0.2em;
 	line-height: 1.6;
@@ -468,6 +485,7 @@ ul#post-list .subtitle {
 
 #date-created {
 	font-size: 95%;
+	white-space: nowrap;
 }
 
 #date-updated {
@@ -490,4 +508,17 @@ ul#post-list .subtitle {
 .footnote-ref {
 	text-decoration: none;
 	font-size: 0.9em;
+}
+
+/* View Transitions - disabled on mobile to avoid jarring animations when elements are off-screen */
+@media (min-width: 40rem) {
+	@view-transition {
+		navigation: auto;
+	}
+
+	/* Customize transition animations for all view transition elements */
+	::view-transition-group(*) {
+		animation-duration: 0.5s;
+		animation-timing-function: ease-in-out;
+	}
 }
