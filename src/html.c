@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -13,7 +14,6 @@
 
 // global template content
 char *site_menu = NULL;
-char *site_hgroup = NULL;
 
 // compare by creation time
 static int __qsort_cb(const void *a, const void *b) {
@@ -24,55 +24,6 @@ static int __qsort_cb(const void *a, const void *b) {
         if (header_a->meta.created > header_b->meta.created) return -1;
         if (header_a->meta.created < header_b->meta.created) return 1;
         return 0;
-}
-
-// indent
-static char *__html_indent_str(const char *str, int lvl) {
-        if (str == NULL || lvl < 0) {
-                return NULL;
-        }
-
-        // count lines and total characters
-        int nchar = 0;
-        int nline = 0;
-        const char *p = str;
-        while (*p != '\0') {
-                if (*p == '\n') {
-                        nline++;
-                }
-                nchar++;
-                p++;
-        }
-
-        // allocate: original chars + (tabs per line * num lines) + null terminator
-        // we add lvl tabs at the start, plus lvl tabs after each newline
-        int new_len = nchar + (lvl * (nline + 1)) + 1;
-        char *indented = NULL;
-        if ((indented = malloc(new_len)) == NULL) {
-                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
-                return NULL;
-        }
-        char *dst = indented;
-
-        // initial indent
-        for (int i = 0; i < lvl; i++) {
-                *dst++ = '\t';
-        }
-
-        // copy with indentation after newlines
-        while (*str != '\0') {
-                *dst++ = *str;
-
-                if (*str == '\n' && *(str + 1) != '\0') { // Don't indent after final newline
-                        for (int i = 0; i < lvl; i++) {
-                                *dst++ = '\t';
-                        }
-                }
-                str++;
-        }
-
-        *dst = '\0';
-        return indented;
 }
 
 // shared template building blocks
@@ -133,27 +84,19 @@ cleanup:
 // initialize all templates
 int html_init_templates(void) {
         page_block menu_block = {0};
-        page_block hgroup_block = {0};
 
         // load menu
         if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/menu.htm", &menu_block) != 0) {
                 goto error;
         }
 
-        // load hgroup
-        if (__html_parse_block(_SITE_BLOCK_DIR_PATH "/hgroup.htm", &hgroup_block) != 0) {
-                goto error;
-        }
-
         // transfer ownership
         site_menu = menu_block.content;
-        site_hgroup = hgroup_block.content;
 
         return 0;
 
 error:
         if (menu_block.content) free(menu_block.content);
-        if (hgroup_block.content) free(hgroup_block.content);
         return -1;
 }
 
@@ -162,10 +105,6 @@ void html_cleanup_templates(void) {
         if (site_menu) {
                 free(site_menu);
                 site_menu = NULL;
-        }
-        if (site_hgroup) {
-                free(site_hgroup);
-                site_hgroup = NULL;
         }
 }
 
@@ -185,33 +124,10 @@ static char *__html_create_content(page_header *header, char *page_content) {
         size_t created_formatted_size = 256;
         char created_formatted[created_formatted_size];
         if (header->meta.created) {
-                ghist_format_ts("%d %b, %Y", created_formatted, header->meta.created);
+                ghist_format_ts("%Y-%m-%d", created_formatted, header->meta.created);
         } else {
                 snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
         }
-
-        // add header group
-        const char *template_content = site_hgroup;
-        int has_modified = header->meta.modified != 0;
-        char modified_formatted[256];
-
-        if (has_modified) {
-                ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
-        }
-
-        // indent the content
-        char *indented = __html_indent_str(template_content, 0);
-        if (indented == NULL) {
-                return NULL;
-        }
-
-        // format with template
-        size_t remaining = buf_size - offset;
-        offset =
-            snprintf(pos, remaining, indented, created_formatted, header->title, header->subtitle);
-
-        // clean up
-        free(indented);
 
         // check for errors
         if (offset < 0) {
@@ -224,6 +140,23 @@ static char *__html_create_content(page_header *header, char *page_content) {
 
         // separate main content from header group
         offset = snprintf(pos, buf_size - offset, "%s\n", "<div id=\"post-body\">");
+        pos += offset;
+
+        // add header
+        char *upper = malloc(strlen(header->title) + 1);
+        if (upper == NULL) {
+                ERROR(SITE_ERROR_MEMORY_ALLOCATION);
+                free(buf);
+                return NULL;
+        }
+        strcpy(upper, header->title);
+        char *p = upper;
+        while (*p) {
+                *p = (char)toupper((unsigned char)*p);
+                p++;
+        }
+        offset = snprintf(pos, buf_size - offset, "<h1>%s</h1>\n", upper);
+        free(upper);
         pos += offset;
 
         // add content
@@ -241,12 +174,34 @@ static char *__html_create_content(page_header *header, char *page_content) {
         pos += offset;
 
         // add updated date at the end if present
+        int has_modified = header->meta.modified != 0;
         if (has_modified) {
+                char modified_formatted[256];
+                ghist_format_ts("%Y-%m-%d", modified_formatted, header->meta.modified);
                 offset = snprintf(pos, buf_size - offset,
-                                  "<div id=\"date-updated\">\n"
-                                  "<small>Last Updated on %s</small>\n"
+                                  // clang-format off
+                                  "<div id=\"post-date\">\n"
+                                      "<div id=\"date-created\">\n"
+                                          "<small>Created on %s</small>\n"
+                                      "</div>\n"
+				      "|\n"
+                                      "<div id=\"date-updated\">\n"
+                                          "<small>Last Updated on %s</small>\n"
+                                      "</div>\n"
                                   "</div>\n",
-                                  modified_formatted);
+                                  // clang-format on
+                                  created_formatted, modified_formatted);
+                pos += offset;
+        } else {
+                offset = snprintf(pos, buf_size - offset,
+                                  // clang-format off
+                                  "<div id=\"post-date\">\n"
+                                      "<div id=\"date-created\">\n"
+                                          "<small>Created on %s</small>\n"
+                                      "</div>\n"
+                                  "</div>\n",
+                                  // clang-format on
+                                  created_formatted);
                 pos += offset;
         }
 
@@ -265,9 +220,6 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 
         int fprintf_ret = 0;
 
-        char created_formatted[256];
-        ghist_format_ts("%d %b, %Y", created_formatted, header->meta.created);
-
         fprintf_ret = fprintf(
             dest_file,
             // clang-format off
@@ -281,18 +233,21 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
             "    <meta name=\"theme-color\" content=\"var(--color-bg)\" media=\"(prefers-color-scheme: light)\">\n"
             "    <meta name=\"theme-color\" content=\"var(--color-bg)\" media=\"(prefers-color-scheme: dark)\">\n"
             "	 <link href=\"/feed.atom\" type=\"application/atom+xml\" rel=\"alternate\">\n"
+            "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n"
             "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT "\n"
             "    <title>%s</title>\n"
+	    "	 <style>@import url('https://fonts.googleapis.com/css2?family=Rock+3D&display=swap');</style>\n"
             "    %s\n"
             "</head>\n"
             "<body>\n"
-	    "<div id=\"background\"></div>\n"
-	    "<div id=\"post\" class=\"content\">\n"
-	    "%s\n"
-            "<main>\n"
-	    "<div id=\"post-main\">\n",
+	    "    <div id=\"background\"></div>\n"
+	    "        <div id=\"post\" class=\"content\">\n"
+	    "            %s\n"
+            "            <main>\n"
+	    "                <article id=\"post-main\">\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, header->title, _SITE_SCRIPT, site_menu);
+            _SITE_STYLE_SHEET_PATH, _SITE_MENU_STYLE_SHEET_PATH, header->title, _SITE_SCRIPT,
+            site_menu);
 
         // write content
         char *html_content = NULL;
@@ -316,8 +271,9 @@ int html_create_page(page_header *header, char *plain_content, char *output_path
 
         // close html
         // clang-format off
-        fprintf_ret = fprintf(dest_file, "</main>\n"
-                                         "</div>\n"
+        fprintf_ret = fprintf(dest_file, "            </article>\n"
+                                         "        </main>\n"
+                                         "    </div>\n"
                                          "</body>\n"
                                          "</html>\n");
         // clang-format on
@@ -358,17 +314,20 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
             "    <meta name=\"theme-color\" content=\"var(--color-bg)\" media=\"(prefers-color-scheme: light)\">\n"
             "    <meta name=\"theme-color\" content=\"var(--color-bg)\" media=\"(prefers-color-scheme: dark)\">\n"
             "    <link href=\"/feed.atom\" type=\"application/atom+xml\" rel=\"alternate\">\n"
+            "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n"
             "    <link rel=\"stylesheet\" href=\"%s\" type=\"text/css\">\n" _SITE_HTML_FONT "\n"
             "    <title>%s</title>\n"
+	    "	 <style>@import url('https://fonts.googleapis.com/css2?family=Rock+3D&display=swap');</style>\n"
             "	 %s\n"
             "</head>\n"
             "<body>\n"
-	    "<div id=\"background\"></div>\n"
-	    "<div id=\"index\" class=\"content\">\n"
-	    "%s\n"
-            "<main>\n",
+	    "    <div id=\"background\"></div>\n"
+	    "        <div id=\"index\" class=\"content\">\n"
+	    "            %s\n"
+            "            <main>\n",
             // clang-format on
-            _SITE_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_SCRIPT, site_menu);
+            _SITE_STYLE_SHEET_PATH, _SITE_MENU_STYLE_SHEET_PATH, _SITE_TITLE, _SITE_SCRIPT,
+            site_menu);
 
         // content
         char *dest_line = strtok((char *)page_content, "\n");
@@ -382,9 +341,8 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
         qsort(header_arr->elems, header_arr->len, sizeof(page_header *), __qsort_cb);
 
         // add a list of posts to the index
-        fprintf_ret = fprintf(dest_file, "<section>\n"
-                                         "<h1>Weblog</h1>\n"
-                                         "<ul id=\"post-list\">\n");
+        fprintf_ret = fprintf(dest_file, "<section id=\"post-list\">\n"
+                                         "    <ul>\n");
 
         for (int i = 0; i < header_arr->len; i++) {
                 bool skip = false;
@@ -398,32 +356,32 @@ int html_create_index(char *page_content, char *output_path, page_header_arr *he
                 size_t created_formatted_size = 256;
                 char created_formatted[created_formatted_size];
                 if (header_arr->elems[i]->meta.created) {
-                        ghist_format_ts("%Y&#8209;%m&#8209;%d", created_formatted,
+                        ghist_format_ts("%Y", created_formatted,
                                         header_arr->elems[i]->meta.created);
                 } else {
                         snprintf(created_formatted, sizeof(created_formatted), "%s", "DRAFT");
                 }
+
                 fprintf_ret = fprintf(dest_file,
-                                      "<li>\n"
-                                      "<div class=\"post-item-header\">\n"
-                                      "<a href=\"%s\">\n"
-                                      "<span class=\"title\">%s</span>\n"
-                                      "</a>\n"
-                                      "<span class=\"date\">%s</span>\n"
-                                      "</div>\n"
-                                      "<div class=\"subtitle\">%s</div>\n"
-                                      "</li>\n",
-                                      header_arr->elems[i]->meta.path, header_arr->elems[i]->title,
-                                      created_formatted, header_arr->elems[i]->subtitle);
+                                      // clang-format off
+				      "<li>\n"
+                    		          "<span class=\"date\">%s</span>\n"
+                    		          "<a href=\"%s\">\n"
+					      "<span class=\"title\">%s</span>\n"
+                    		          "</a>\n"
+                    		      "</li>\n",
+                                      // clang-format on
+                                      created_formatted, header_arr->elems[i]->meta.path,
+                                      header_arr->elems[i]->title);
         }
 
-        fprintf_ret = fprintf(dest_file, "</ul>\n"
+        fprintf_ret = fprintf(dest_file, "    </ul>\n"
                                          "</section>\n");
 
         // close <main>
         // clang-format off
-        fprintf_ret = fprintf(dest_file, "</main>\n"
-					 "</div>\n"
+        fprintf_ret = fprintf(dest_file, "        </main>\n"
+					 "    </div>\n"
                                          "</body>\n"
                                          "</html>\n");
         // clang-format on
