@@ -26,9 +26,9 @@ class SiteFootnote extends HTMLElement {
 	}
 
 	processContent() {
-		const contentContainer = document.querySelector("main");
+		const contentContainer = document.getElementById("post-main");
 		if (!contentContainer) {
-			throw new error(
+			throw new Error(
 				`${SITE_FOOTNOTE_TAGNAME}: Content container to append footnotes to not found`,
 			);
 		}
@@ -80,13 +80,10 @@ class SiteFootnote extends HTMLElement {
 
 		const ol = this.footnoteContainer.getElementsByTagName("ol").item(0);
 		if (!ol) {
-			throw new error(`${SITE_FOOTNOTE_TAGNAME}: Footnote list not found`);
+			throw new Error(`${SITE_FOOTNOTE_TAGNAME}: Footnote list not found`);
 		}
 
 		ol.appendChild(li);
-
-		const contentContainer = document.querySelector("main");
-		contentContainer.appendChild(this.footnoteContainer);
 	}
 
 	initContainer(contentContainer, footnoteContainer) {
@@ -94,8 +91,17 @@ class SiteFootnote extends HTMLElement {
 			footnoteContainer = document.createElement("div");
 			footnoteContainer.id = "footnotes";
 			footnoteContainer.appendChild(document.createElement("ol"));
-			contentContainer.appendChild(footnoteContainer);
+
+			const dateUpdated = document.getElementById("post-date");
+			if (dateUpdated) {
+				// Insert footnotes before the date element
+				contentContainer.insertBefore(footnoteContainer, dateUpdated);
+			} else {
+				// No date element, append to end
+				contentContainer.appendChild(footnoteContainer);
+			}
 		}
+
 		return footnoteContainer;
 	}
 }
@@ -108,24 +114,15 @@ class SiteMenu extends HTMLElement {
 
 		const parentMenu = this.parentElement?.closest(SITE_MENU_TAGNAME);
 
-		this.isTop = this.id === "top-menu";
+		this.isTop = this.id === "site-menu-top";
+		this.dataset.enabled = true;
 		this.level = parentMenu ? parentMenu.level + 1 : 1;
-		this.content = Array.from(this.children).map((child, index) => {
-			const nudge = 0.6;
-			const tiltRight =
-				Math.random() < index % 2 === 0 ? 0.5 + nudge * 0.5 : 0.5 - nudge * 0.5;
-
-			const rotation = ((tiltRight ? 1 : -1) * (Math.random() * 20 + index * 0.4)).toFixed(4);
-
-			const delay = index * 0.01;
-			const style = `--delay: ${delay}s; --rotation: ${rotation}deg`;
-
+		this.content = Array.from(this.children).map((child) => {
 			if (child.tagName !== SITE_MENU_TAGNAME.toUpperCase()) {
 				child.classList.add("site-menu-item");
 			}
 
 			const li = document.createElement("li");
-			li.style = style;
 			li.appendChild(child);
 
 			return li;
@@ -148,7 +145,7 @@ class SiteMenu extends HTMLElement {
 		this.style.setProperty("--level", this.level);
 
 		if (this.isTop) {
-			this.innerHTML = `<div class="wrapper hidden">
+			this.innerHTML = `<div class="wrapper">
 		    <menu>
 				${this.content.map((li) => li.outerHTML).join("")}
 		    </menu>
@@ -157,13 +154,17 @@ class SiteMenu extends HTMLElement {
 			<button
 				id="site-menu-control-back-btn"
 				class="site-menu-control"
-				onclick="window.location.href='/'"
-			>← Back</button>
-			<button id="site-menu-main-toggle" class="site-menu-item">${label}</button>
+				onclick="window.location='/'"
+			>Back</button>
+			<button
+				id="site-menu-control-top-btn"
+				class="site-menu-control"
+			>Top</button>
+			<button id="site-menu-main-toggle" class="site-menu-control">${label}</button>
 		</div>
 		`;
 		} else {
-			this.innerHTML = `<div class="wrapper hidden">
+			this.innerHTML = `<div class="wrapper">
 		    <ul>
 				${this.content.map((li) => li.outerHTML).join("")}
 		    </ul>
@@ -185,6 +186,24 @@ class SiteMenu extends HTMLElement {
 			const background = document.getElementById("background");
 			background.addEventListener("click", () => this.toggleBackground());
 
+			// Add hover effect for background
+			background.addEventListener("mouseenter", () => {
+				this.classList.add("hover");
+			});
+			background.addEventListener("mouseleave", () => {
+				this.classList.remove("hover");
+			});
+
+			const topButton = document.getElementById("site-menu-control-top-btn");
+			if (topButton) {
+				topButton.addEventListener("click", () => {
+					background.classList.remove("active");
+					document.getElementById("site-menu-top").classList.remove("open");
+
+					window.scrollTo({ top: 0, behavior: "smooth" });
+				});
+			}
+
 			this.disableBackButtonIfAtRoot();
 		}
 	}
@@ -199,23 +218,31 @@ class SiteMenu extends HTMLElement {
 	}
 
 	toggleSelf() {
-		const wrapper = this.querySelector(":scope > .wrapper");
-
 		if (this.isTop) {
-			this.querySelectorAll(`:scope ${SITE_MENU_TAGNAME} .wrapper`).forEach((w) =>
-				w.classList.add("hidden"),
-			);
-			wrapper.classList.toggle("hidden");
+			// Close all nested menus
+			this.querySelectorAll(`:scope ${SITE_MENU_TAGNAME}`).forEach((menu) => {
+				menu.classList.remove("open");
+			});
+
+			// Toggle this menu
+			this.classList.toggle("open");
 			document.getElementById("background").classList.toggle("active");
 		} else {
+			// Check if we're closing this menu
+			const isClosing = this.classList.contains("open");
+
+			// Handle nested menu toggles
 			document
-				.getElementById("top-menu")
-				.querySelectorAll(`:scope ${SITE_MENU_TAGNAME} .wrapper`)
-				.forEach((w) => {
-					if (wrapper.isSameNode(w)) {
-						w.classList.toggle("hidden");
-					} else if (!w.parentElement.contains(this)) {
-						w.classList.add("hidden");
+				.getElementById("site-menu-top")
+				.querySelectorAll(`:scope ${SITE_MENU_TAGNAME}`)
+				.forEach((menu) => {
+					if (menu === this) {
+						menu.classList.toggle("open");
+					} else if (isClosing && this.contains(menu)) {
+						// If closing this menu, close all child menus
+						menu.classList.remove("open");
+					} else if (!this.contains(menu) && !menu.contains(this)) {
+						menu.classList.remove("open");
 					}
 				});
 		}
@@ -229,15 +256,12 @@ class SiteMenu extends HTMLElement {
 			menu.classList.remove("deepest");
 		});
 
-		// Find all open nested menus (not top-level)
-		const openMenus = document.querySelectorAll(
-			`${SITE_MENU_TAGNAME}:not([data-level="1"]) > .wrapper:not(.hidden)`,
-		);
+		// Find all open menus
+		const openMenus = document.querySelectorAll(`${SITE_MENU_TAGNAME}.open`);
 
 		// Mark menus as deepest if they have no open child menus
-		openMenus.forEach((wrapper) => {
-			const menu = wrapper.parentElement;
-			const hasOpenChild = wrapper.querySelector(".wrapper:not(.hidden)");
+		openMenus.forEach((menu) => {
+			const hasOpenChild = menu.querySelector(`${SITE_MENU_TAGNAME}.open`);
 
 			if (!hasOpenChild) {
 				menu.classList.add("deepest");
@@ -246,12 +270,14 @@ class SiteMenu extends HTMLElement {
 	}
 
 	toggleBackground() {
-		document
-			.getElementById("top-menu")
-			.querySelectorAll(`:scope ${SITE_MENU_TAGNAME} .wrapper`)
-			.forEach((w) => w.classList.add("hidden"));
+		// Close all menus including the top menu
+		const topMenu = document.getElementById("site-menu-top");
+		topMenu.classList.remove("open");
 
-		this.querySelector(":scope > .wrapper").classList.add("hidden");
+		topMenu.querySelectorAll(`:scope ${SITE_MENU_TAGNAME}`).forEach((menu) => {
+			menu.classList.remove("open");
+		});
+
 		document.getElementById("background").classList.remove("active");
 
 		this.updateDeepestMenu();

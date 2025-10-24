@@ -7,7 +7,7 @@ _SITE_EXT_GIT_DIR ?= .git/
 
 CC = clang
 
-SRCDIR = src/
+SRC_DIR = src/
 
 LIBGIT2_VERSION = v1.9.0
 LIBGIT2_DIR = deps/libgit2
@@ -41,16 +41,16 @@ DEBUG_CFLAGS = $(CFLAGS) \
 deploy: clean build
 
 # debug build target
-debug: $(LIBGIT2_LIB) $(SRCDIR)/*.c
+debug: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
 	@printf "%s\n" "Building site generator (DEBUG)..."
-	@$(CC) $(LDFLAGS) $(DEBUG_CFLAGS) $(SRCDIR)/*.c -o main.out $(LDLIBS)
+	@$(CC) $(LDFLAGS) $(DEBUG_CFLAGS) $(SRC_DIR)/*.c -o main.out $(LDLIBS)
 	@printf "%s\n" "Generating pages (DEBUG)..."
 	@./main.out
 
 #build
-build: $(LIBGIT2_LIB) $(SRCDIR)/*.c
+build: $(LIBGIT2_LIB) $(SRC_DIR)/*.c
 	@printf "%s\n" "Building site generator..."
-	@$(CC) $(LDFLAGS) $(CFLAGS) $(SRCDIR)/*.c -o main.out $(LDLIBS)
+	@$(CC) $(LDFLAGS) $(CFLAGS) $(SRC_DIR)/*.c -o main.out $(LDLIBS)
 	@printf "%s\n" "Generating pages..."
 	@./main.out
 
