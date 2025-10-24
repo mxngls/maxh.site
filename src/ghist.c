@@ -51,6 +51,9 @@ static void __trace_rename(char *final_path, git_time_t *creation_time,
                     *modification_time == 0 ? rename_arr.records[i].creat_time : *modification_time;
                 *creation_time = rename_arr.records[i].creat_time;
 
+                // free old path name
+                free(current_path);
+
                 current_path = strdup(rename_arr.records[i].old_path);
 
                 i = rename_arr.len;
@@ -215,6 +218,12 @@ cleanup:
         git_commit_free(parent);
         git_tree_free(tree);
         git_tree_free(parent_tree);
+
+        for (int i = 0; i < rename_arr.len; i++) {
+                free(rename_arr.records[i].old_path);
+                free(rename_arr.records[i].new_path);
+        }
+        free(rename_arr.records);
 
         return res;
 }

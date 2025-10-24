@@ -18,9 +18,9 @@
 #endif
 
 #define _SITE_INDEX_PATH "index.htm"
-#define _SITE_ABOUT_PATH "about.htm"
+// UNUSED #define _SITE_ABOUT_PATH "about.htm"
 
-#define _SITE_EXCEMPT_LIST _SITE_ABOUT_PATH
+#define _SITE_EXCEMPT_LIST ""
 
 const char *index_excempt_arr[] = {_SITE_EXCEMPT_LIST};
 #define _SITE_EXCEMPT_LIST_COUNT (sizeof(index_excempt_arr) / sizeof(index_excempt_arr[0]))
@@ -336,14 +336,18 @@ int main(void) {
 cleanup:
         // cleanup
         if (ftsp) fts_close(ftsp);
+        // headers
         for (int i = 0; i < header_arr.len; i++) {
                 free((char *)header_arr.elems[i]->title);
                 free((char *)header_arr.elems[i]->subtitle);
                 free(header_arr.elems[i]);
         }
+        // tracked files (renamed files are to be cleaned
         for (int i = 0; i < tracked_arr.len; i++) {
                 free(tracked_arr.files[i].file_path);
         }
+        free(tracked_arr.files);
+
         html_cleanup_templates();
 
         return res;
